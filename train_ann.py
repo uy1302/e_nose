@@ -8,12 +8,12 @@ import matplotlib.pyplot as plt
 import pickle
 
 print("Loading preprocessed data...")
-X_train = np.load('X_train.npy')
-y_train = np.load('y_train.npy')
-X_test = np.load('X_test.npy')
-y_test = np.load('y_test.npy')
+X_train = np.load('/formatted_data/X_train.npy')
+y_train = np.load('formatted_data/y_train.npy')
+X_test = np.load('/formatted_data/X_test.npy')
+y_test = np.load('formatted_data/y_test.npy')
 
-with open('label_encoder.pkl', 'rb') as f:
+with open('/decoder_scaler/label_encoder.pkl', 'rb') as f:
     label_encoder = pickle.load(f)
     
 num_classes = len(label_encoder.classes_)

@@ -7,12 +7,12 @@ import xgboost as xgb
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 print("Loading preprocessed data...")
-X_train = np.load('X_train.npy')
-y_train = np.load('y_train.npy')
-X_test = np.load('X_test.npy')
-y_test = np.load('y_test.npy')
+X_train = np.load('/formatted_data/X_train.npy')
+y_train = np.load('/formatted_data/y_train.npy')
+X_test = np.load('/formatted_data/X_test.npy')
+y_test = np.load('/formatted_data/y_test.npy')
 
-with open('label_encoder.pkl', 'rb') as f:
+with open('/decoder_scaler/label_encoder.pkl', 'rb') as f:
     label_encoder = pickle.load(f)
 
 print(f"X_train shape: {X_train.shape}")
@@ -108,7 +108,6 @@ plt.xlabel('Feature Importance')
 plt.title('XGBoost Feature Importance')
 plt.tight_layout()
 plt.savefig('xgboost_feature_importance.png')
-print("Feature importance plot saved to /home/ubuntu/ml_project/xgboost_feature_importance.png")
 
 import json
 results = {

@@ -57,17 +57,17 @@ for i, label in enumerate(unique):
 print(f"Training set shape after SMOTE: {X_train_smote.shape}")
 
 print("\nSaving preprocessed data...")
-np.save('X_train.npy', X_train_smote)
-np.save('y_train.npy', y_train_smote)
-np.save('X_test.npy', X_test)
-np.save('y_test.npy', y_test)
+np.save('/formatted_data/X_train.npy', X_train_smote)
+np.save('/formatted_data/y_train.npy', y_train_smote)
+np.save('/formatted_data/X_test.npy', X_test)
+np.save('/formatted_data/y_test.npy', y_test)
 
 import pickle
-with open('scaler.pkl', 'wb') as f:
+with open('/decoder_scaler/scaler.pkl', 'wb') as f:
     pickle.dump(scaler, f)
-with open('label_encoder.pkl', 'wb') as f:
+with open('/decoder_scaler/label_encoder.pkl', 'wb') as f:
     pickle.dump(label_encoder, f)
-with open('imputer.pkl', 'wb') as f:
+with open('/decoder_scaler/imputer.pkl', 'wb') as f:
     pickle.dump(imputer, f)
 
 print("\nPreprocessing complete. Files saved.")

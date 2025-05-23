@@ -53,10 +53,10 @@ def load_models():
     model_dir = "."
     
     # Load preprocessing objects
-    with open(os.path.join(model_dir, 'scaler.pkl'), 'rb') as f:
+    with open(os.path.join(model_dir, './decoder_scaler/scaler.pkl'), 'rb') as f:
         scaler = pickle.load(f)
     
-    with open(os.path.join(model_dir, 'label_encoder.pkl'), 'rb') as f:
+    with open(os.path.join(model_dir, './decoder_scaler/label_encoder.pkl'), 'rb') as f:
         label_encoder = pickle.load(f)
     
     # Load models
