@@ -1,4 +1,4 @@
-tensorflow==2.19.0
+tensorflow
 xgboost==3.0.1
 scikit-learn==1.6.1
 imblearn==0.0
