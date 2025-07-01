@@ -6,14 +6,19 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.regularizers import l2
 import matplotlib.pyplot as plt
 import pickle
+import json
+from config import config
 
 print("Loading preprocessed data...")
-X_train = np.load('/formatted_data/X_train.npy')
-y_train = np.load('formatted_data/y_train.npy')
-X_test = np.load('/formatted_data/X_test.npy')
-y_test = np.load('formatted_data/y_test.npy')
+# Load data using config paths
+formatted_data_path = config.get_path('paths', 'formatted_data')
+X_train = np.load(formatted_data_path / 'X_train.npy')
+y_train = np.load(formatted_data_path / 'y_train.npy')
+X_test = np.load(formatted_data_path / 'X_test.npy')
+y_test = np.load(formatted_data_path / 'y_test.npy')
 
-with open('/decoder_scaler/label_encoder.pkl', 'rb') as f:
+# Load label encoder using config path
+with open(config.get_preprocessing_path('label_encoder'), 'rb') as f:
     label_encoder = pickle.load(f)
     
 num_classes = len(label_encoder.classes_)
@@ -64,7 +69,7 @@ early_stopping = EarlyStopping(
 )
 
 model_checkpoint = ModelCheckpoint(
-    filepath='ann_model_best.h5',
+    filepath=str(config.get_model_path('ann_best')),
     monitor='val_accuracy',
     save_best_only=True,
     verbose=1
@@ -85,8 +90,8 @@ test_loss, test_accuracy = model.evaluate(X_test, y_test_onehot, verbose=1)
 print(f"Test accuracy: {test_accuracy:.4f}")
 print(f"Test loss: {test_loss:.4f}")
 
-model.save('ann_model.h5')
-print("ANN model saved to ann_model.h5")
+model.save(str(config.get_model_path('ann')))
+print(f"ANN model saved to {config.get_model_path('ann')}")
 
 plt.figure(figsize=(12, 5))
 
@@ -107,8 +112,9 @@ plt.xlabel('Epoch')
 plt.legend(['Train', 'Validation'], loc='upper left')
 
 plt.tight_layout()
-plt.savefig('ann_training_history.png')
-print("Training history plot saved to ann_training_history.png")
+plot_path = config.get_path('paths', 'docs') / 'ann_training_history.png'
+plt.savefig(str(plot_path))
+print(f"Training history plot saved to {plot_path}")
 
 y_pred_prob = model.predict(X_test)
 y_pred = np.argmax(y_pred_prob, axis=1)
@@ -122,8 +128,9 @@ report = classification_report(y_test, y_pred, target_names=label_encoder.classe
 print("\nClassification Report:")
 print(classification_report(y_test, y_pred, target_names=label_encoder.classes_))
 
-import json
-with open('ann_classification_report.json', 'w') as f:
+report_path = config.get_path('paths', 'output') / 'ann_classification_report.json'
+with open(str(report_path), 'w') as f:
     json.dump(report, f)
+print(f"Classification report saved to {report_path}")
 
 print("ANN training and evaluation complete.")

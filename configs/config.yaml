@@ -1,0 +1,64 @@
+# E-Nose Project Configuration
+
+# Paths
+paths:
+  data:
+    raw: "data/raw"
+    processed: "data/processed"
+    formatted_data: "data/processed/formatted_data"
+    decoder_scaler: "data/processed/decoder_scaler"
+  models: "models"
+  output: "data/processed"
+  docs: "docs"
+
+# Model files
+models:
+  ann: "models/ann_model.h5"
+  ann_best: "models/ann_model_best.h5"
+  random_forest: "models/random_forest_model.pkl"
+  xgboost: "models/xgboost_model.json"
+
+# Preprocessing
+preprocessing:
+  scaler: "data/processed/decoder_scaler/scaler.pkl"
+  imputer: "data/processed/decoder_scaler/imputer.pkl"
+  label_encoder: "data/processed/decoder_scaler/label_encoder.pkl"
+
+# Training parameters
+training:
+  ann:
+    epochs: 100
+    batch_size: 32
+    validation_split: 0.2
+    patience: 20
+    learning_rate: 0.001
+  
+  random_forest:
+    n_estimators: 100
+    max_depth: 10
+    random_state: 42
+  
+  xgboost:
+    n_estimators: 100
+    max_depth: 6
+    learning_rate: 0.1
+
+# Sensor configuration
+sensors:
+  features: ["MQ2", "MQ3", "MQ4", "MQ6", "MQ7", "MQ135", "TEMP", "HUMI"]
+  
+# Classes (smell categories)
+classes:
+  - "Normal"
+  - "Coffee"
+  - "CocaCola"
+  - "RedBull"
+  - "Apple_Juice"
+  - "Sweet_Tea"
+  - "Water"
+
+# Visualization
+plots:
+  save_path: "docs"
+  dpi: 300
+  figsize: [12, 8] 

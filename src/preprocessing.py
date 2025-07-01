@@ -4,9 +4,13 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.impute import SimpleImputer
 from imblearn.over_sampling import SMOTE
+import pickle
+from config import config
 
 print("Loading dataset...")
-df = pd.read_csv('/home/luonguy/smell-datasets/esp32_data.csv')
+# Load dataset from processed data directory
+data_path = config.get_path('paths', 'processed') / 'esp32_data.csv'
+df = pd.read_csv(str(data_path))
 
 print(f"Dataset shape: {df.shape}")
 print("\nClass distribution before preprocessing:")
@@ -57,17 +61,19 @@ for i, label in enumerate(unique):
 print(f"Training set shape after SMOTE: {X_train_smote.shape}")
 
 print("\nSaving preprocessed data...")
-np.save('/formatted_data/X_train.npy', X_train_smote)
-np.save('/formatted_data/y_train.npy', y_train_smote)
-np.save('/formatted_data/X_test.npy', X_test)
-np.save('/formatted_data/y_test.npy', y_test)
+# Save formatted data using config paths
+formatted_data_path = config.get_path('paths', 'formatted_data')
+np.save(str(formatted_data_path / 'X_train.npy'), X_train_smote)
+np.save(str(formatted_data_path / 'y_train.npy'), y_train_smote)
+np.save(str(formatted_data_path / 'X_test.npy'), X_test)
+np.save(str(formatted_data_path / 'y_test.npy'), y_test)
 
-import pickle
-with open('/decoder_scaler/scaler.pkl', 'wb') as f:
+# Save preprocessing objects using config paths
+with open(str(config.get_preprocessing_path('scaler')), 'wb') as f:
     pickle.dump(scaler, f)
-with open('/decoder_scaler/label_encoder.pkl', 'wb') as f:
+with open(str(config.get_preprocessing_path('label_encoder')), 'wb') as f:
     pickle.dump(label_encoder, f)
-with open('/decoder_scaler/imputer.pkl', 'wb') as f:
+with open(str(config.get_preprocessing_path('imputer')), 'wb') as f:
     pickle.dump(imputer, f)
 
 print("\nPreprocessing complete. Files saved.")
