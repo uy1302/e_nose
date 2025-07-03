@@ -32,7 +32,7 @@ def predict_with_models(input_data):
     input_scaled = scaler.transform(input_imputed)
     
     # Load models using config paths and make predictions
-    ann_model = tf.keras.models.load_model(config.get_model_path('ann'))
+    ann_model = tf.keras.models.load_model(str(config.get_model_path('ann')))
     ann_pred_prob = ann_model.predict(input_scaled)
     ann_pred_class = np.argmax(ann_pred_prob, axis=1)[0]
     ann_pred_label = label_encoder.inverse_transform([ann_pred_class])[0]
@@ -44,7 +44,7 @@ def predict_with_models(input_data):
     rf_pred_label = label_encoder.inverse_transform([rf_pred_class])[0]
     
     xgb_model = xgb.XGBClassifier()
-    xgb_model.load_model(config.get_model_path('xgboost'))
+    xgb_model.load_model(str(config.get_model_path('xgboost')))
     xgb_pred_class = xgb_model.predict(input_scaled)[0]
     xgb_pred_label = label_encoder.inverse_transform([xgb_pred_class])[0]
     

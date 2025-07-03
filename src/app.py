@@ -10,6 +10,8 @@ import sys
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
+from tensorflow import keras
+from config import config
 
 # Set page configuration
 st.set_page_config(
@@ -49,24 +51,21 @@ st.markdown("""
 # Function to load models and preprocessing objects
 @st.cache_resource
 def load_models():
-    # Define paths - for deployment, we need to use relative paths
-    model_dir = "."
-    
-    # Load preprocessing objects
-    with open(os.path.join(model_dir, './decoder_scaler/scaler.pkl'), 'rb') as f:
+    # Load preprocessing objects using config paths
+    with open(str(config.get_preprocessing_path('scaler')), 'rb') as f:
         scaler = pickle.load(f)
     
-    with open(os.path.join(model_dir, './decoder_scaler/label_encoder.pkl'), 'rb') as f:
+    with open(str(config.get_preprocessing_path('label_encoder')), 'rb') as f:
         label_encoder = pickle.load(f)
     
-    # Load models
-    ann_model = tf.keras.models.load_model(os.path.join(model_dir, 'ann_model.h5'))
+    # Load models using config paths
+    ann_model = keras.models.load_model(str(config.get_model_path('ann')))
     
-    with open(os.path.join(model_dir, 'random_forest_model.pkl'), 'rb') as f:
+    with open(str(config.get_model_path('random_forest')), 'rb') as f:
         rf_model = pickle.load(f)
     
     xgb_model = xgb.XGBClassifier()
-    xgb_model.load_model(os.path.join(model_dir, 'xgboost_model.json'))
+    xgb_model.load_model(str(config.get_model_path('xgboost')))
     
     return {
         'scaler': scaler,
@@ -207,8 +206,9 @@ def display_prediction_results(result):
 # Function to display input data
 def display_input_data(input_data):
     # Create a DataFrame for better display
-    sensor_names = ['MQ2', 'MQ3', 'MQ4', 'MQ6', 'MQ7', 'MQ135', 'TEMP', 'HUMI']
-    df = pd.DataFrame([input_data], columns=sensor_names)
+    sensor_names = config.sensor_features
+    df = pd.DataFrame([input_data])
+    df.columns = sensor_names
     
     # Display as a table
     st.subheader("Input Sensor Data")

@@ -1,9 +1,10 @@
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from tensorflow.keras.regularizers import l2
+import keras
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, BatchNormalization
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.regularizers import l2
 import matplotlib.pyplot as plt
 import pickle
 import json
@@ -11,7 +12,7 @@ from config import config
 
 print("Loading preprocessed data...")
 # Load data using config paths
-formatted_data_path = config.get_path('paths', 'formatted_data')
+formatted_data_path = config.get_path('paths', 'data', 'formatted_data')
 X_train = np.load(formatted_data_path / 'X_train.npy')
 y_train = np.load(formatted_data_path / 'y_train.npy')
 X_test = np.load(formatted_data_path / 'X_test.npy')
@@ -30,8 +31,8 @@ print(f"y_train shape: {y_train.shape}")
 print(f"X_test shape: {X_test.shape}")
 print(f"y_test shape: {y_test.shape}")
 
-y_train_onehot = tf.keras.utils.to_categorical(y_train, num_classes)
-y_test_onehot = tf.keras.utils.to_categorical(y_test, num_classes)
+y_train_onehot = keras.utils.to_categorical(y_train, num_classes)
+y_test_onehot = keras.utils.to_categorical(y_test, num_classes)
 
 np.random.seed(42)
 tf.random.set_seed(42)
@@ -82,11 +83,11 @@ history = model.fit(
     batch_size=32,
     validation_split=0.2,
     callbacks=[early_stopping, model_checkpoint],
-    verbose=1
+    verbose="auto"
 )
 
 print("\nEvaluating ANN model on test data...")
-test_loss, test_accuracy = model.evaluate(X_test, y_test_onehot, verbose=1)
+test_loss, test_accuracy = model.evaluate(X_test, y_test_onehot, verbose="auto")
 print(f"Test accuracy: {test_accuracy:.4f}")
 print(f"Test loss: {test_loss:.4f}")
 
@@ -128,7 +129,7 @@ report = classification_report(y_test, y_pred, target_names=label_encoder.classe
 print("\nClassification Report:")
 print(classification_report(y_test, y_pred, target_names=label_encoder.classes_))
 
-report_path = config.get_path('paths', 'output') / 'ann_classification_report.json'
+report_path = config.get_path('paths', 'data', 'processed') / 'ann_classification_report.json'
 with open(str(report_path), 'w') as f:
     json.dump(report, f)
 print(f"Classification report saved to {report_path}")

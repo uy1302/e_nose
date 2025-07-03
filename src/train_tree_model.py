@@ -2,17 +2,20 @@ import numpy as np
 import pandas as pd
 import pickle
 import matplotlib.pyplot as plt
+from config import config
 from sklearn.ensemble import RandomForestClassifier
 import xgboost as xgb
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 print("Loading preprocessed data...")
-X_train = np.load('/formatted_data/X_train.npy')
-y_train = np.load('/formatted_data/y_train.npy')
-X_test = np.load('/formatted_data/X_test.npy')
-y_test = np.load('/formatted_data/y_test.npy')
+formatted_data_path = config.get_path('paths', 'data', 'formatted_data')
+X_train = np.load(formatted_data_path / 'X_train.npy')
+y_train = np.load(formatted_data_path / 'y_train.npy')
+X_test = np.load(formatted_data_path / 'X_test.npy')
+y_test = np.load(formatted_data_path / 'y_test.npy')
 
-with open('/decoder_scaler/label_encoder.pkl', 'rb') as f:
+label_encoder_path = config.get_path('paths', 'data', 'decoder_scaler') / 'label_encoder.pkl'
+with open(label_encoder_path, 'rb') as f:   
     label_encoder = pickle.load(f)
 
 print(f"X_train shape: {X_train.shape}")
@@ -49,9 +52,10 @@ report_rf = classification_report(y_test, y_pred_rf, target_names=label_encoder.
 print("\nRandom Forest Classification Report:")
 print(classification_report(y_test, y_pred_rf, target_names=label_encoder.classes_))
 
-with open('random_forest_model.pkl', 'wb') as f:
+rf_model_path = config.get_model_path('random_forest')
+with open(rf_model_path, 'wb') as f:
     pickle.dump(rf_model, f)
-print("Random Forest model saved to random_forest_model.pkl")
+print(f"Random Forest model saved to {rf_model_path}")
 
 feature_importances_rf = rf_model.feature_importances_
 feature_names = ['MQ2', 'MQ3', 'MQ4', 'MQ6', 'MQ7', 'MQ135', 'TEMP', 'HUMI']
@@ -63,8 +67,9 @@ plt.yticks(range(len(sorted_idx)), [feature_names[i] for i in sorted_idx])
 plt.xlabel('Feature Importance')
 plt.title('Random Forest Feature Importance')
 plt.tight_layout()
-plt.savefig('random_forest_feature_importance.png')
-print("Feature importance plot saved to random_forest_feature_importance.png")
+docs_path = config.get_path('paths', 'docs')
+plt.savefig(str(docs_path / 'random_forest_feature_importance.png'))
+print(f"Feature importance plot saved to {docs_path / 'random_forest_feature_importance.png'}")
 
 print("\n=== Training XGBoost model ===")
 xgb_model = xgb.XGBClassifier(
@@ -95,8 +100,9 @@ report_xgb = classification_report(y_test, y_pred_xgb, target_names=label_encode
 print("\nXGBoost Classification Report:")
 print(classification_report(y_test, y_pred_xgb, target_names=label_encoder.classes_))
 
-xgb_model.save_model('xgboost_model.json')
-print("XGBoost model saved to xgboost_model.json")
+xgb_model_path = config.get_model_path('xgboost')
+xgb_model.save_model(str(xgb_model_path))
+print(f"XGBoost model saved to {xgb_model_path}")
 
 feature_importances_xgb = xgb_model.feature_importances_
 
@@ -107,7 +113,8 @@ plt.yticks(range(len(sorted_idx)), [feature_names[i] for i in sorted_idx])
 plt.xlabel('Feature Importance')
 plt.title('XGBoost Feature Importance')
 plt.tight_layout()
-plt.savefig('xgboost_feature_importance.png')
+plt.savefig(str(docs_path / 'xgboost_feature_importance.png'))
+print(f"Feature importance plot saved to {docs_path / 'xgboost_feature_importance.png'}")
 
 import json
 results = {
@@ -121,7 +128,9 @@ results = {
     }
 }
 
-with open('tree_models_results.json', 'w') as f:
+output_path = config.get_path('paths', 'output') / 'tree_models_results.json'
+with open(output_path, 'w') as f:
     json.dump(results, f, indent=4)
+print(f"Results saved to {output_path}")
 
 print("\nTraining and evaluation of tree-based models complete.")

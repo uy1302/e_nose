@@ -9,7 +9,7 @@ from config import config
 
 print("Loading dataset...")
 # Load dataset from processed data directory
-data_path = config.get_path('paths', 'processed') / 'esp32_data.csv'
+data_path = config.get_path('paths', 'data', 'processed') / 'esp32_data.csv'
 df = pd.read_csv(str(data_path))
 
 print(f"Dataset shape: {df.shape}")
@@ -26,6 +26,7 @@ df = df.drop(['Unnamed: 0', 'DATE', 'TIME'], axis=1)
 print("\nEncoding target variable...")
 label_encoder = LabelEncoder()
 y = label_encoder.fit_transform(df['label'])
+y = np.array(y)  # Ensure y is numpy array
 
 label_classes = label_encoder.classes_
 print(f"Classes: {label_classes}")
@@ -54,15 +55,15 @@ smote = SMOTE(random_state=42)
 X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
 
 print("\nClass distribution after SMOTE:")
-unique, counts = np.unique(y_train_smote, return_counts=True)
-for i, label in enumerate(unique):
-    print(f"{label_classes[label]}: {counts[i]}")
+unique_labels, label_counts = np.unique(y_train_smote, return_counts=True)
+for i, label in enumerate(unique_labels):
+    print(f"{label_classes[label]}: {label_counts[i]}")
 
 print(f"Training set shape after SMOTE: {X_train_smote.shape}")
 
 print("\nSaving preprocessed data...")
 # Save formatted data using config paths
-formatted_data_path = config.get_path('paths', 'formatted_data')
+formatted_data_path = config.get_path('paths', 'data', 'formatted_data')
 np.save(str(formatted_data_path / 'X_train.npy'), X_train_smote)
 np.save(str(formatted_data_path / 'y_train.npy'), y_train_smote)
 np.save(str(formatted_data_path / 'X_test.npy'), X_test)
