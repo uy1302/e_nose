@@ -1,24 +1,4 @@
-# E-Nose Flask API Documentation
 
-## Tổng Quan
-
-Flask API backend cho hệ thống E-Nose, cung cấp các endpoint để dự đoán mùi từ dữ liệu cảm biến.
-
-## Cài Đặt
-
-```bash
-# 1. Cài đặt dependencies
-pip install -r requirements.txt
-
-# 2. Cấu hình môi trường (tùy chọn)
-cp config.env .env
-# Chỉnh sửa .env theo nhu cầu
-
-# 3. Chạy API server
-python src/api.py
-# Hoặc
-python src/run_api.py
-```
 
 ## API Endpoints
 

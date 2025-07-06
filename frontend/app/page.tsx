@@ -123,12 +123,12 @@ export default function HomePage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: 0.4 + index * 0.1 }}
                     >
-                      <Card className="hover:shadow-lg transition-shadow duration-300">
+                      <Card className="card-hover-glow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                           <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="text-2xl font-bold">{item.value}</div>
+                          <div className="text-2xl font-bold counter-animate">{item.value}</div>
                           <p className="text-xs text-muted-foreground">{item.desc}</p>
                         </CardContent>
                       </Card>
@@ -142,13 +142,13 @@ export default function HomePage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.8 }}
                 >
-                  <Card className="hover:shadow-lg transition-shadow duration-300">
+                  <Card className="card-hover-glow glass-morphism">
                     <CardHeader>
                       <CardTitle>Giới thiệu hệ thống</CardTitle>
                       <CardDescription>E-Nose - Electronic Nose System</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm">
                         Hệ thống mũi điện tử sử dụng 8 cảm biến để phát hiện và phân loại mùi. Dữ liệu từ các cảm biến được xử
                         lý bởi 3 mô hình AI khác nhau để đưa ra dự đoán chính xác về loại mùi.
                       </p>
@@ -163,7 +163,7 @@ export default function HomePage() {
                     </CardContent>
                   </Card>
 
-                  <Card className="hover:shadow-lg transition-shadow duration-300">
+                  <Card className="card-hover-glow glass-morphism">
                     <CardHeader>
                       <CardTitle>Hướng dẫn sử dụng</CardTitle>
                       <CardDescription>Các bước để thực hiện dự đoán</CardDescription>
@@ -183,7 +183,7 @@ export default function HomePage() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.3, delay: 1.0 + index * 0.1 }}
                           >
-                            <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                            <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold btn-interactive">
                               {index + 1}
                             </div>
                             <p className="text-sm">{step}</p>

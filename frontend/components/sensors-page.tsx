@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Loader2, Thermometer, Droplets, Wind } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import SensorDetailModal from "@/components/sensor-detail-modal"
 
 interface SensorInfo {
   sensor_features: string[]
@@ -35,6 +36,8 @@ export default function SensorsPage() {
   const [sensorInfo, setSensorInfo] = useState<SensorInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedSensor, setSelectedSensor] = useState<string | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     fetchSensorInfo()
@@ -55,6 +58,16 @@ export default function SensorsPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleSensorClick = (sensor: string) => {
+    setSelectedSensor(sensor)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedSensor(null)
   }
 
   if (isLoading) {
@@ -118,7 +131,11 @@ export default function SensorsPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {sensorInfo.sensor_types.gas_sensors.map((sensor) => (
-              <div key={sensor} className="flex items-center justify-between p-3 border rounded-lg">
+              <div 
+                key={sensor} 
+                className="flex items-center justify-between p-3 border rounded-lg hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] hover:bg-muted/50"
+                onClick={() => handleSensorClick(sensor)}
+              >
                 <div className="flex items-center space-x-3">
                   {sensorIcons[sensor]}
                   <div>
@@ -142,7 +159,11 @@ export default function SensorsPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {sensorInfo.sensor_types.environmental_sensors.map((sensor) => (
-              <div key={sensor} className="flex items-center justify-between p-3 border rounded-lg">
+              <div 
+                key={sensor} 
+                className="flex items-center justify-between p-3 border rounded-lg hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] hover:bg-muted/50"
+                onClick={() => handleSensorClick(sensor)}
+              >
                 <div className="flex items-center space-x-3">
                   {sensorIcons[sensor]}
                   <div>
@@ -157,30 +178,17 @@ export default function SensorsPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Chi tiết từng cảm biến</CardTitle>
-          <CardDescription>Danh sách đầy đủ các cảm biến và chức năng của chúng</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-            {sensorInfo.sensor_features.map((sensor, index) => (
-              <Card key={sensor} className="p-4">
-                <div className="flex items-center space-x-2 mb-2">
-                  {sensorIcons[sensor]}
-                  <div className="font-medium">{sensor}</div>
-                </div>
-                <div className="text-sm text-muted-foreground">{sensorInfo.sensor_descriptions[sensor]}</div>
-                <div className="mt-2">
-                  <Badge variant={sensorInfo.sensor_types.gas_sensors.includes(sensor) ? "secondary" : "outline"}>
-                    {sensorInfo.sensor_types.gas_sensors.includes(sensor) ? "Gas" : "Environment"}
-                  </Badge>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+
+
+      {/* Sensor Detail Modal */}
+      {selectedSensor && sensorInfo && (
+        <SensorDetailModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          sensor={selectedSensor}
+          sensorInfo={sensorInfo}
+        />
+      )}
     </div>
   )
 }
