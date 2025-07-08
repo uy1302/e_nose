@@ -39,18 +39,33 @@ tf.random.set_seed(42)
 
 print("\nBuilding ANN model with regularization...")
 model = Sequential([
-    Dense(64, activation='relu', kernel_regularizer=l2(0.001), input_shape=(X_train.shape[1],)),
+    # Input layer với nhiều neurons hơn
+    Dense(128, activation='relu', kernel_regularizer=l2(0.001), input_shape=(X_train.shape[1],)),
     BatchNormalization(),
     Dropout(0.3),
     
-    Dense(128, activation='relu', kernel_regularizer=l2(0.001)),
+    # Thêm nhiều hidden layers để tăng parameters
+    Dense(256, activation='relu', kernel_regularizer=l2(0.001)),
     BatchNormalization(),
     Dropout(0.4),
     
-    Dense(64, activation='relu', kernel_regularizer=l2(0.001)),
+    Dense(512, activation='relu', kernel_regularizer=l2(0.001)),
+    BatchNormalization(),
+    Dropout(0.5),
+    
+    Dense(256, activation='relu', kernel_regularizer=l2(0.001)),
+    BatchNormalization(),
+    Dropout(0.4),
+    
+    Dense(128, activation='relu', kernel_regularizer=l2(0.001)),
     BatchNormalization(),
     Dropout(0.3),
     
+    Dense(64, activation='relu', kernel_regularizer=l2(0.001)),
+    BatchNormalization(),
+    Dropout(0.2),
+    
+    # Output layer
     Dense(num_classes, activation='softmax')
 ])
 
@@ -79,7 +94,7 @@ model_checkpoint = ModelCheckpoint(
 print("\nTraining ANN model...")
 history = model.fit(
     X_train, y_train_onehot,
-    epochs=100,
+    epochs=1000,
     batch_size=32,
     validation_split=0.2,
     callbacks=[early_stopping, model_checkpoint],

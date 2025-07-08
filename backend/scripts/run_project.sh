@@ -10,7 +10,8 @@ show_help() {
     echo "  preprocess  - Preprocess data"
     echo "  train-ann   - Train ANN model"
     echo "  train-tree  - Train tree models (RF + XGBoost)"
-    echo "  train-all   - Train all models"
+    echo "  train-knn   - Train KNN model with hyperparameter tuning"
+    echo "  train-all   - Train all models (ANN + RF + XGBoost + KNN)"
     echo "  predict     - Run prediction with sample data"
     echo "  compare     - Compare model performance"
     echo "  visualize   - Generate visualizations"
@@ -47,11 +48,19 @@ train_tree() {
     cd ..
 }
 
+train_knn() {
+    echo "🤖 Training KNN model with hyperparameter tuning..."
+    cd src
+    python train_knn.py
+    cd ..
+}
+
 train_all() {
     echo "🏋️ Training all models..."
     cd src
     python train_ann.py
     python train_tree_model.py
+    python train_knn.py
     cd ..
 }
 
@@ -104,6 +113,9 @@ case "$1" in
         ;;
     train-tree)
         train_tree
+        ;;
+    train-knn)
+        train_knn
         ;;
     train-all)
         train_all

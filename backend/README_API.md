@@ -1,4 +1,6 @@
+# E-Nose API Documentation
 
+Hệ thống E-Nose cung cấp REST API để dự đoán loại mùi từ dữ liệu cảm biến sử dụng 4 mô hình AI (ANN, Random Forest, XGBoost, KNN). API được xây dựng bằng Flask và hỗ trợ dữ liệu từ ThingSpeak IoT platform.
 
 ## API Endpoints
 
@@ -44,6 +46,10 @@ Content-Type: application/json
         "xgboost": {
             "class_id": 0,
             "class_label": "fish_sauce"
+        },
+        "knn": {
+            "class_id": 0,
+            "class_label": "fish_sauce"
         }
     },
     "metadata": {
@@ -52,7 +58,8 @@ Content-Type: application/json
         "model_versions": {
             "ann": "v1.0",
             "random_forest": "v1.0",
-            "xgboost": "v1.0"
+            "xgboost": "v1.0",
+            "knn": "v1.0"
         }
     }
 }
@@ -123,6 +130,12 @@ GET /models
             "type": "gradient_boosting",
             "accuracy": "100%",
             "description": "Gradient boosting algorithm"
+        },
+        "knn": {
+            "name": "K-Nearest Neighbors",
+            "type": "instance_based",
+            "accuracy": "100%",
+            "description": "Distance-based classification algorithm"
         }
     },
     "classes": ["fish_sauce", "garlic", "lemon", "milk"],

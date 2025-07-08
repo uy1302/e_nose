@@ -17,6 +17,7 @@ models:
   ann_best: "models/ann_model_best.h5"
   random_forest: "models/random_forest_model.pkl"
   xgboost: "models/xgboost_model.json"
+  knn: "models/knn_model.pkl"
 
 # Preprocessing
 preprocessing:

@@ -2,7 +2,7 @@ import requests
 import csv
 
 
-def fetch_thingspeak_data(api_key, results=50):
+def fetch_thingspeak_data(api_key, results=10):
     """
     Fetch data from ThingSpeak API
     
@@ -55,34 +55,47 @@ def save_data_to_csv(data, filename="output.csv"):
 
 def process_thingspeak_data(data):
     """
-    Process ThingSpeak data to extract sensor values
+    Process ThingSpeak data to extract average sensor values
     
     Args:
         data (list): List of ThingSpeak feed data
     
     Returns:
-        list: List of sensor values [MQ2, MQ3, MQ4, MQ6, MQ7, MQ135, TEMP, HUMI] or None if failed
+        list: List of average sensor values [MQ2, MQ3, MQ4, MQ6, MQ7, MQ135, TEMP, HUMI] or None if failed
     """
     if not data:
         return None
     
-    # Get the latest entry
-    latest_entry = data[-1]
-    
-    # Extract sensor values
+    # Calculate average values from all entries
     try:
-        sensor_values = [
-            float(latest_entry.get("field1", 0)),  # MQ2
-            float(latest_entry.get("field2", 0)),  # MQ3
-            float(latest_entry.get("field3", 0)),  # MQ4
-            float(latest_entry.get("field4", 0)),  # MQ6
-            float(latest_entry.get("field5", 0)),  # MQ7
-            float(latest_entry.get("field6", 0)),  # MQ135
-            float(latest_entry.get("field7", 0)),  # TEMP
-            float(latest_entry.get("field8", 0))   # HUMI
-        ]
+        field_sums = [0.0] * 8  # 8 fields (field1 to field8)
+        field_counts = [0] * 8
+        
+        # Sum all valid field values
+        for entry in data:
+            for i, field_name in enumerate(["field1", "field2", "field3", "field4", "field5", "field6", "field7", "field8"]):
+                field_value = entry.get(field_name)
+                if field_value is not None and field_value != "":
+                    try:
+                        value = float(field_value)
+                        field_sums[i] += value
+                        field_counts[i] += 1
+                    except (ValueError, TypeError):
+                        continue
+        
+        # Calculate averages and round to 2 decimal places
+        sensor_values = []
+        for i in range(8):
+            if field_counts[i] > 0:
+                average_value = field_sums[i] / field_counts[i]
+                sensor_values.append(round(average_value, 2))
+            else:
+                sensor_values.append(0.0)  # Default to 0 if no valid data
+        
+        print(f"Calculated averages from {len(data)} entries: {sensor_values}")
         return sensor_values
-    except (ValueError, TypeError) as e:
+        
+    except Exception as e:
         print(f"Error processing sensor values: {str(e)}")
         return None
 

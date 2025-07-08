@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Cloud, RefreshCw } from "lucide-react"
+import { Loader2, Cloud, RefreshCw, Brain, TreePine, Zap, Network } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface ThingSpeakData {
@@ -39,6 +39,10 @@ interface ThingSpeakPrediction {
       class_label: string
     }
     xgboost: {
+      class_id: number
+      class_label: string
+    }
+    knn: {
       class_id: number
       class_label: string
     }
@@ -133,7 +137,7 @@ export default function ThingSpeakPage() {
             <Cloud className="mr-2 h-5 w-5" />
             Dự đoán từ ThingSpeak
           </CardTitle>
-          <CardDescription>Lấy dữ liệu cảm biến từ ThingSpeak và thực hiện dự đoán</CardDescription>
+          <CardDescription>Lấy dữ liệu cảm biến từ ThingSpeak, tính trung bình và thực hiện dự đoán</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -230,18 +234,23 @@ export default function ThingSpeakPage() {
           )}
 
           {/* Prediction Results */}
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+                <Brain className="h-4 w-4 mr-2" />
                 <CardTitle className="text-sm font-medium">Neural Network (ANN)</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{odorLabels[result.predictions.ann.class_label] || result.predictions.ann.class_label}</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  Độ tin cậy: {(result.predictions.ann.probability * 100).toFixed(2)}%
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+                <TreePine className="h-4 w-4 mr-2" />
                 <CardTitle className="text-sm font-medium">Random Forest</CardTitle>
               </CardHeader>
               <CardContent>
@@ -251,10 +260,21 @@ export default function ThingSpeakPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+                <Zap className="h-4 w-4 mr-2" />
                 <CardTitle className="text-sm font-medium">XGBoost</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{odorLabels[result.predictions.xgboost.class_label] || result.predictions.xgboost.class_label}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+                <Network className="h-4 w-4 mr-2" />
+                <CardTitle className="text-sm font-medium">K-Nearest Neighbors</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{odorLabels[result.predictions.knn.class_label] || result.predictions.knn.class_label}</div>
               </CardContent>
             </Card>
           </div>
@@ -262,18 +282,19 @@ export default function ThingSpeakPage() {
           {/* Sensor Data */}
           <Card>
             <CardHeader>
-              <CardTitle>Dữ liệu cảm biến từ ThingSpeak</CardTitle>
+              <CardTitle>Dữ liệu cảm biến trung bình từ ThingSpeak</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {result.metadata.sensor_names.map((sensor, index) => (
                   <div key={sensor} className="text-center p-3 bg-muted rounded">
                     <div className="text-xs text-muted-foreground">{sensor}</div>
-                    <div className="font-mono text-lg font-bold">{result.input_data[index]}</div>
+                    <div className="font-mono text-lg font-bold">{result.input_data[index].toFixed(2)}</div>
                   </div>
                 ))}
               </div>
               <p className="text-xs text-muted-foreground mt-4">
+                Dữ liệu trung bình được tính từ {result.metadata?.thingspeak?.records_fetched || 'nhiều'} bản ghi. <br />
                 Dữ liệu được lấy lúc: {new Date(result.metadata.timestamp).toLocaleString("vi-VN")}
               </p>
             </CardContent>

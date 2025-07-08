@@ -1,0 +1,131 @@
+{
+    "model_info": {
+        "name": "K-Nearest Neighbors",
+        "type": "instance_based",
+        "algorithm": "KNN"
+    },
+    "hyperparameters": {
+        "best_params": {
+            "algorithm": "auto",
+            "metric": "euclidean",
+            "n_neighbors": 21,
+            "weights": "uniform"
+        },
+        "cv_score": 0.9988491039189299,
+        "param_grid": {
+            "n_neighbors": [
+                21,
+                23,
+                25,
+                27,
+                29,
+                31,
+                33,
+                35
+            ],
+            "weights": [
+                "uniform",
+                "distance"
+            ],
+            "algorithm": [
+                "auto",
+                "ball_tree",
+                "kd_tree",
+                "brute"
+            ],
+            "metric": [
+                "euclidean",
+                "manhattan",
+                "minkowski"
+            ]
+        }
+    },
+    "performance": {
+        "test_accuracy": 1.0,
+        "confusion_matrix": [
+            [
+                163,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                148,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                143,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                68
+            ]
+        ],
+        "classification_report": {
+            "fish_sauce": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 163.0
+            },
+            "garlic": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 148.0
+            },
+            "lemon": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 143.0
+            },
+            "milk": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 68.0
+            },
+            "accuracy": 1.0,
+            "macro avg": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 522.0
+            },
+            "weighted avg": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 522.0
+            }
+        }
+    },
+    "training_info": {
+        "training_time": 6.837956428527832,
+        "cv_folds": 5,
+        "data_shapes": {
+            "X_train": [
+                2608,
+                8
+            ],
+            "X_test": [
+                522,
+                8
+            ],
+            "y_train": [
+                2608
+            ],
+            "y_test": [
+                522
+            ]
+        }
+    }
+}

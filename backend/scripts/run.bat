@@ -8,6 +8,7 @@ if "%1"=="setup" goto :setup
 if "%1"=="preprocess" goto :preprocess
 if "%1"=="train-ann" goto :train_ann
 if "%1"=="train-tree" goto :train_tree
+if "%1"=="train-knn" goto :train_knn
 if "%1"=="train-all" goto :train_all
 if "%1"=="predict" goto :predict
 if "%1"=="compare" goto :compare
@@ -24,7 +25,8 @@ echo   setup       - Run project setup
 echo   preprocess  - Preprocess data
 echo   train-ann   - Train ANN model
 echo   train-tree  - Train tree models (RF + XGBoost)
-echo   train-all   - Train all models
+echo   train-knn   - Train KNN model with hyperparameter tuning
+echo   train-all   - Train all models (ANN + RF + XGBoost + KNN)
 echo   predict     - Run prediction with sample data
 echo   compare     - Compare model performance
 echo   visualize   - Generate visualizations
@@ -61,11 +63,19 @@ python train_tree_model.py
 cd ..
 goto :end
 
+:train_knn
+echo 🤖 Training KNN model with hyperparameter tuning...
+cd src
+python train_knn.py
+cd ..
+goto :end
+
 :train_all
 echo 🏋️ Training all models...
 cd src
 python train_ann.py
 python train_tree_model.py
+python train_knn.py
 cd ..
 goto :end
 

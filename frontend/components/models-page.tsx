@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Brain, TreePine, Zap, Target } from "lucide-react"
+import { Loader2, Brain, TreePine, Zap, Target, Network } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface ModelInfo {
@@ -25,6 +25,7 @@ const modelIcons: { [key: string]: React.ReactNode } = {
   ann: <Brain className="h-5 w-5" />,
   random_forest: <TreePine className="h-5 w-5" />,
   xgboost: <Zap className="h-5 w-5" />,
+  knn: <Network className="h-5 w-5" />,
 }
 
 const odorLabels: { [key: string]: string } = {
@@ -38,6 +39,7 @@ const typeColors: { [key: string]: string } = {
   deep_learning: "bg-blue-100 text-blue-800",
   ensemble: "bg-green-100 text-green-800",
   gradient_boosting: "bg-purple-100 text-purple-800",
+  instance_based: "bg-orange-100 text-orange-800",
 }
 
 export default function ModelsPage() {
@@ -183,7 +185,7 @@ export default function ModelsPage() {
                 {modelInfo.ensemble_method.replace("_", " ").toUpperCase()}
               </Badge>
               <p className="text-sm text-muted-foreground">
-                Hệ thống sử dụng phương pháp bỏ phiếu đa số để kết hợp kết quả từ 3 mô hình AI, đảm bảo độ chính xác và
+                Hệ thống sử dụng phương pháp bỏ phiếu đa số để kết hợp kết quả từ 4 mô hình AI, đảm bảo độ chính xác và
                 tin cậy cao nhất.
               </p>
             </div>
@@ -192,7 +194,7 @@ export default function ModelsPage() {
               <h4 className="font-medium">Quy trình dự đoán:</h4>
               <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
                 <li>Dữ liệu cảm biến được chuẩn hóa</li>
-                <li>3 mô hình AI thực hiện dự đoán độc lập</li>
+                <li>4 mô hình AI thực hiện dự đoán độc lập</li>
                 <li>Kết quả được kết hợp bằng phương pháp bỏ phiếu</li>
                 <li>Trả về kết quả cuối cùng với độ tin cậy</li>
               </ol>

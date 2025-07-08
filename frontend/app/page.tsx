@@ -113,7 +113,7 @@ export default function HomePage() {
                 >
                   {[
                     { title: "Tổng số cảm biến", value: "8", desc: "6 cảm biến khí + 2 cảm biến môi trường" },
-                    { title: "Mô hình AI", value: "3", desc: "ANN, Random Forest, XGBoost" },
+                    { title: "Mô hình AI", value: "4", desc: "ANN, Random Forest, XGBoost, KNN" },
                     { title: "Loại mùi", value: "4", desc: "Nước mắm, Tỏi, Chanh, Sữa" },
                     { title: "Độ chính xác", value: "100%", desc: "Trên tập dữ liệu test" }
                   ].map((item, index) => (
@@ -150,7 +150,7 @@ export default function HomePage() {
                     <CardContent className="space-y-2">
                       <p className="text-sm">
                         Hệ thống mũi điện tử sử dụng 8 cảm biến để phát hiện và phân loại mùi. Dữ liệu từ các cảm biến được xử
-                        lý bởi 3 mô hình AI khác nhau để đưa ra dự đoán chính xác về loại mùi.
+                        lý bởi 4 mô hình AI khác nhau để đưa ra dự đoán chính xác về loại mùi.
                       </p>
                       <div className="space-y-1">
                         <p className="text-sm">
@@ -174,7 +174,7 @@ export default function HomePage() {
                           'Chuyển đến tab "Dự đoán"',
                           'Nhập dữ liệu 8 cảm biến',
                           'Nhấn "Dự đoán" để xem kết quả',
-                          'Xem kết quả từ 3 mô hình AI'
+                          'Xem kết quả từ 4 mô hình AI'
                         ].map((step, index) => (
                           <motion.div
                             key={step}

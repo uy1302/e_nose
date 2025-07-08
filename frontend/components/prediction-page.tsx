@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Brain, TreePine, Zap } from "lucide-react"
+import { Loader2, Brain, TreePine, Zap, Network } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface PredictionResult {
@@ -25,6 +25,10 @@ interface PredictionResult {
       class_id: number
       class_label: string
     }
+    knn: {
+      class_id: number
+      class_label: string
+    }
   }
   metadata: {
     timestamp: string
@@ -33,6 +37,7 @@ interface PredictionResult {
       ann: string
       random_forest: string
       xgboost: string
+      knn: string
     }
   }
 }
@@ -159,7 +164,7 @@ export default function PredictionPage() {
       )}
 
       {result && (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center space-y-0 pb-2">
               <Brain className="h-4 w-4 mr-2" />
@@ -167,6 +172,9 @@ export default function PredictionPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{odorLabels[result.predictions.ann.class_label]}</div>
+              <div className="text-sm text-muted-foreground mt-1">
+                Độ tin cậy: {(result.predictions.ann.probability * 100).toFixed(2)}%
+              </div>
               <div className="flex items-center space-x-2 mt-2">
                 <Badge variant="outline">{result.metadata.model_versions.ann}</Badge>
               </div>
@@ -198,6 +206,19 @@ export default function PredictionPage() {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+              <Network className="h-4 w-4 mr-2" />
+              <CardTitle className="text-sm font-medium">K-Nearest Neighbors</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{odorLabels[result.predictions.knn.class_label]}</div>
+              <div className="flex items-center space-x-2 mt-2">
+                <Badge variant="outline">{result.metadata.model_versions.knn}</Badge>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -212,13 +233,13 @@ export default function PredictionPage() {
                 <strong>Thời gian dự đoán:</strong> {new Date(result.metadata.timestamp).toLocaleString("vi-VN")}
               </p>
               <p className="text-sm">
-                <strong>Dữ liệu đầu vào:</strong> [{result.input_data.join(", ")}]
+                <strong>Dữ liệu đầu vào:</strong> [{result.input_data.map(val => val.toFixed(2)).join(", ")}]
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
                 {result.metadata.sensor_names.map((sensor, index) => (
                   <div key={sensor} className="text-center p-2 bg-muted rounded">
                     <div className="text-xs text-muted-foreground">{sensor}</div>
-                    <div className="font-mono text-sm">{result.input_data[index]}</div>
+                    <div className="font-mono text-sm">{result.input_data[index].toFixed(2)}</div>
                   </div>
                 ))}
               </div>

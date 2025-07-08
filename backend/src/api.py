@@ -84,7 +84,8 @@ def predict():
             'model_versions': {
                 'ann': 'v1.0',
                 'random_forest': 'v1.0', 
-                'xgboost': 'v1.0'
+                'xgboost': 'v1.0',
+                'knn': 'v1.0'
             }
         }
         
@@ -102,7 +103,7 @@ def predict():
 @app.route('/predict/thingspeak', methods=['POST'])
 def predict_thingspeak():
     """
-    Predict smell category from ThingSpeak latest data
+    Predict smell category from ThingSpeak averaged data
     
     Expected JSON payload:
     {
@@ -155,7 +156,8 @@ def predict_thingspeak():
             'model_versions': {
                 'ann': 'v1.0',
                 'random_forest': 'v1.0',
-                'xgboost': 'v1.0'
+                'xgboost': 'v1.0',
+                'knn': 'v1.0'
             }
         }
         
@@ -215,6 +217,12 @@ def get_models():
                 'type': 'gradient_boosting',
                 'accuracy': '100%',
                 'description': 'Gradient boosting algorithm'
+            },
+            'knn': {
+                'name': 'K-Nearest Neighbors',
+                'type': 'instance_based',
+                'accuracy': '100%',
+                'description': 'Distance-based classification algorithm'
             }
         },
         'classes': [

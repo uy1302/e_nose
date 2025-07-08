@@ -1,9 +1,11 @@
 import numpy as np
 import pandas as pd
 import pickle
+import json
 import matplotlib.pyplot as plt
 from config import config
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
 import xgboost as xgb
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
@@ -116,21 +118,58 @@ plt.tight_layout()
 plt.savefig(str(docs_path / 'xgboost_feature_importance.png'))
 print(f"Feature importance plot saved to {docs_path / 'xgboost_feature_importance.png'}")
 
-import json
+print("\n=== Training KNN model ===")
+knn_model = KNeighborsClassifier(
+    n_neighbors=5,
+    weights='distance',
+    algorithm='auto',
+    metric='minkowski',
+    p=2,
+    n_jobs=-1
+)
+
+knn_model.fit(X_train, y_train)
+print("KNN model trained.")
+
+y_pred_knn = knn_model.predict(X_test)
+accuracy_knn = accuracy_score(y_test, y_pred_knn)
+print(f"KNN Test Accuracy: {accuracy_knn:.4f}")
+
+cm_knn = confusion_matrix(y_test, y_pred_knn)
+print("\nKNN Confusion Matrix:")
+print(cm_knn)
+
+report_knn = classification_report(y_test, y_pred_knn, target_names=label_encoder.classes_, output_dict=True)
+print("\nKNN Classification Report:")
+print(classification_report(y_test, y_pred_knn, target_names=label_encoder.classes_))
+
+knn_model_path = config.get_model_path('knn')
+with open(knn_model_path, 'wb') as f:
+    pickle.dump(knn_model, f)
+print(f"KNN model saved to {knn_model_path}")
+
+# Cập nhật kết quả để bao gồm KNN
 results = {
     'random_forest': {
-        'accuracy': float(accuracy_rf),
+        'accuracy': accuracy_rf,
+        'confusion_matrix': cm_rf.tolist(),
         'classification_report': report_rf
     },
     'xgboost': {
-        'accuracy': float(accuracy_xgb),
+        'accuracy': accuracy_xgb,
+        'confusion_matrix': cm_xgb.tolist(), 
         'classification_report': report_xgb
+    },
+    'knn': {
+        'accuracy': accuracy_knn,
+        'confusion_matrix': cm_knn.tolist(),
+        'classification_report': report_knn
     }
 }
 
-output_path = config.get_path('paths', 'output') / 'tree_models_results.json'
-with open(output_path, 'w') as f:
+results_path = config.get_path('paths', 'data', 'processed') / 'tree_models_results.json'
+with open(str(results_path), 'w') as f:
     json.dump(results, f, indent=4)
-print(f"Results saved to {output_path}")
+print(f"Results saved to {results_path}")
 
-print("\nTraining and evaluation of tree-based models complete.")
+print("All tree models (RF, XGBoost, KNN) training complete.")

@@ -270,7 +270,7 @@ def main():
                 if data:
                     st.success(f"Successfully fetched {len(data)} records from ThingSpeak")
                     
-                    # Process the data to get the latest sensor values
+                    # Process the data to get the averaged sensor values
                     input_data = adapter.process_thingspeak_data(data)
                     
                     if input_data:
