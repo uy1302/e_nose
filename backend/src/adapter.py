@@ -68,12 +68,12 @@ def process_thingspeak_data(data):
     
     # Calculate average values from all entries
     try:
-        field_sums = [0.0] * 8  # 8 fields (field1 to field8)
-        field_counts = [0] * 8
-        
+        field_sums = [0.0] * 4  # 4 fields (field5 to field8)
+        field_counts = [0] * 4
+
         # Sum all valid field values
         for entry in data:
-            for i, field_name in enumerate(["field1", "field2", "field3", "field4", "field5", "field6", "field7", "field8"]):
+            for i, field_name in enumerate(["field1", "field2", "field3", "field4"]):
                 field_value = entry.get(field_name)
                 if field_value is not None and field_value != "":
                     try:

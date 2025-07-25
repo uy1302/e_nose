@@ -49,13 +49,17 @@ class Config:
                 'docs': 'docs'
             },
             'models': {
-                'ann': 'models/ann_model.h5',
-                'ann_best': 'models/ann_model_best.h5',
+                'ann': 'models/ann_model.pkl',
+                'knn': 'models/knn_model.pkl',
                 'random_forest': 'models/random_forest_model.pkl',
-                'xgboost': 'models/xgboost_model.json'
+                'xgboost': 'models/xgboost_model.pkl',
+                'meta_model': 'models/meta_model.pkl'
+            },
+            'preprocessing': {
+                'scaler': 'models/scaler.pkl',
             },
             'sensors': {
-                'features': ['MQ2', 'MQ3', 'MQ4', 'MQ6', 'MQ7', 'MQ135', 'TEMP', 'HUMI']
+                'features': ['MQ136', 'MQ137', 'TEMP', 'HUMI']
             }
         }
     

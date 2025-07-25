@@ -1,116 +1,104 @@
 import numpy as np
 import pickle
-import tensorflow as tf
+import joblib
 import xgboost as xgb
 import sys
-import keras
 from config import config
+
+
+def get_meta_features(models: dict, X: np.ndarray) -> np.ndarray:
+    """
+    Generate meta-features by concatenating each base model's probability outputs or decision scores.
+    """
+    preds = []
+    for model in models.values():
+        if hasattr(model, 'predict_proba'):
+            p = model.predict_proba(X)
+        else:
+            p = model.decision_function(X)
+        preds.append(p)
+    return np.hstack(preds)
+
 
 def predict_with_models(input_data):
     """
-    Make predictions using all four trained models
-    
+    Make predictions using all base models and a meta-model
+
     Parameters:
     input_data (list or array): List of sensor readings [MQ2, MQ3, MQ4, MQ6, MQ7, MQ135, TEMP, HUMI]
-    
+
     Returns:
-    dict: Predictions from all models with class labels
+    dict: Predictions from all models including meta-model with class labels and probabilities
     """
     input_array = np.array(input_data).reshape(1, -1)
-    
-    # Load preprocessing objects using config paths
-    with open(config.get_preprocessing_path('imputer'), 'rb') as f:
-        imputer = pickle.load(f)
-    
-    with open(config.get_preprocessing_path('scaler'), 'rb') as f:
-        scaler = pickle.load(f)
-        
-    with open(config.get_preprocessing_path('label_encoder'), 'rb') as f:
-        label_encoder = pickle.load(f)
-    
-    # Preprocess input data
-    input_imputed = imputer.transform(input_array)
-    input_scaled = scaler.transform(input_imputed)
-    
-    # Load models using config paths and make predictions
-    
-    # ANN Model
-    ann_model = keras.models.load_model(str(config.get_model_path('ann')))
-    if ann_model is not None:
-        ann_pred_prob = ann_model.predict(input_scaled)
-        ann_pred_class = np.argmax(ann_pred_prob, axis=1)[0]
-        ann_pred_label = label_encoder.inverse_transform([ann_pred_class])[0]
-        ann_confidence = float(np.max(ann_pred_prob))
-    else:
-        # Handle case where model loading failed
-        ann_pred_class = 0
-        ann_pred_label = "Unknown"
-        ann_confidence = 0.0
-    
-    # Random Forest Model
-    with open(config.get_model_path('random_forest'), 'rb') as f:
-        rf_model = pickle.load(f)
-    rf_pred_class = rf_model.predict(input_scaled)[0]
-    rf_pred_label = label_encoder.inverse_transform([rf_pred_class])[0]
-    
-    # XGBoost Model
-    xgb_model = xgb.XGBClassifier()
-    xgb_model.load_model(str(config.get_model_path('xgboost')))
-    xgb_pred_class = xgb_model.predict(input_scaled)[0]
-    xgb_pred_label = label_encoder.inverse_transform([xgb_pred_class])[0]
-    
-    # KNN Model
-    with open(config.get_model_path('knn'), 'rb') as f:
-        knn_model = pickle.load(f)
-    knn_pred_class = knn_model.predict(input_scaled)[0]
-    knn_pred_label = label_encoder.inverse_transform([knn_pred_class])[0]
-    
+
+    # Load scaler only
+    scaler = joblib.load(config.get_preprocessing_path('scaler'))
+
+    # Scale input
+    input_scaled = scaler.transform(input_array)
+
+    # Load base models
+    rf_model  = joblib.load(config.get_model_path('random_forest'))
+    xgb_model = joblib.load(config.get_model_path('xgboost'))
+    knn_model = joblib.load(config.get_model_path('knn'))
+    ann_model = joblib.load(config.get_model_path('ann'))  # MLPClassifier
+
+    base_models = {'rf': rf_model, 'xgb': xgb_model, 'knn': knn_model, 'ann': ann_model}
+
+    # ANN prediction
+    ann_prob  = ann_model.predict_proba(input_scaled)
+    ann_index = np.argmax(ann_prob, axis=1)[0]
+    ann_label = ann_model.classes_[ann_index]
+    ann_conf  = float(ann_prob[0, ann_index])
+
+    # Random Forest prediction
+    rf_pred  = rf_model.predict(input_scaled)[0]
+    rf_label = rf_pred if rf_pred in rf_model.classes_ else str(rf_pred)
+
+    # XGBoost prediction
+    xgb_pred  = xgb_model.predict(input_scaled)[0]
+    xgb_label = xgb_pred if xgb_pred in xgb_model.classes_ else str(xgb_pred)
+
+    # KNN prediction
+    knn_pred  = knn_model.predict(input_scaled)[0]
+    knn_label = knn_pred if knn_pred in knn_model.classes_ else str(knn_pred)
+
+    # Meta-model prediction
+    meta_X      = get_meta_features(base_models, input_scaled)
+    meta_model  = joblib.load(config.get_model_path('meta_model'))
+    meta_prob   = meta_model.predict_proba(meta_X)
+    meta_index  = np.argmax(meta_prob, axis=1)[0]
+    meta_label  = meta_model.classes_[meta_index]
+    meta_conf   = float(meta_prob[0, meta_index])
+
     return {
         'input_data': input_data,
         'predictions': {
-            'ann': {
-                'class_id': int(ann_pred_class),
-                'class_label': ann_pred_label,
-                'probability': round(ann_confidence, 4)
-            },
-            'random_forest': {
-                'class_id': int(rf_pred_class),
-                'class_label': rf_pred_label
-            },
-            'xgboost': {
-                'class_id': int(xgb_pred_class),
-                'class_label': xgb_pred_label
-            },
-            'knn': {
-                'class_id': int(knn_pred_class),
-                'class_label': knn_pred_label
-            }
+            'ann':   {'class_label': ann_label,  'probability': round(ann_conf, 4)},
+            'random_forest': {'class_label': rf_label},
+            'xgboost':      {'class_label': xgb_label},
+            'knn':          {'class_label': knn_label},
+            'meta':         {'class_label': meta_label, 'probability': round(meta_conf, 4)}
         }
     }
 
 if __name__ == "__main__":
-    if len(sys.argv) > 8:
-
-        sensor_readings = [float(arg) for arg in sys.argv[1:9]]
-        result = predict_with_models(sensor_readings)
-        print("\nInput data:", result['input_data'])
-        print("\nPredictions:")
-        print("ANN:", result['predictions']['ann']['class_label'], 
-              f"(Probability: {result['predictions']['ann']['probability']:.4f})")
-        print("Random Forest:", result['predictions']['random_forest']['class_label'])
-        print("XGBoost:", result['predictions']['xgboost']['class_label'])
-        print("KNN:", result['predictions']['knn']['class_label'])
+    if len(sys.argv) == 5:
+        try:
+            sensor_readings = [float(arg) for arg in sys.argv[1:5]]
+        except ValueError:
+            print("All sensor readings must be numeric.")
+            sys.exit(1)
     else:
-        example_data = [815, 2530, 1075, 2510, 1435, 2160, 37.0, 72.0] 
-        result = predict_with_models(example_data)
-        print("\nExample prediction with sample data:", example_data)
-        print("\nPredictions:")
-        print("ANN:", result['predictions']['ann']['class_label'], 
-              f"(Probability: {result['predictions']['ann']['probability']:.4f})")
-        print("Random Forest:", result['predictions']['random_forest']['class_label'])
-        print("XGBoost:", result['predictions']['xgboost']['class_label'])
-        print("KNN:", result['predictions']['knn']['class_label'])
-        
-        print("\nUsage:")
-        print("python predict.py MQ2 MQ3 MQ4 MQ6 MQ7 MQ135 TEMP HUMI")
-        print("Example: python predict.py 815 2530 1075 2510 1435 2160 37.0 72.0")
+        print("Usage: python predict.py MQ7 MQ135 TEMP HUMI")
+        sys.exit(1)
+
+    result = predict_with_models(sensor_readings)
+    print("\nInput data:", result['input_data'])
+    print("\nPredictions:")
+    print(f"ANN: {result['predictions']['ann']['class_label']} (Prob: {result['predictions']['ann']['probability']:.4f})")
+    print(f"RF: {result['predictions']['random_forest']['class_label']}")
+    print(f"XGB: {result['predictions']['xgboost']['class_label']}")
+    print(f"KNN: {result['predictions']['knn']['class_label']}")
+    print(f"META: {result['predictions']['meta']['class_label']} (Prob: {result['predictions']['meta']['probability']:.4f})")

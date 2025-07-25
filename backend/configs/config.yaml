@@ -13,17 +13,15 @@ paths:
 
 # Model files
 models:
-  ann: "models/ann_model.h5"
-  ann_best: "models/ann_model_best.h5"
+  ann: "models/ann_model.pkl"
   random_forest: "models/random_forest_model.pkl"
-  xgboost: "models/xgboost_model.json"
+  xgboost: "models/xgboost_model.pkl"
   knn: "models/knn_model.pkl"
+  meta_model: "models/meta_model.pkl"
 
 # Preprocessing
 preprocessing:
-  scaler: "data/processed/decoder_scaler/scaler.pkl"
-  imputer: "data/processed/decoder_scaler/imputer.pkl"
-  label_encoder: "data/processed/decoder_scaler/label_encoder.pkl"
+  scaler: "models/scaler.pkl"
 
 # Training parameters
 training:
@@ -46,17 +44,15 @@ training:
 
 # Sensor configuration
 sensors:
-  features: ["MQ2", "MQ3", "MQ4", "MQ6", "MQ7", "MQ135", "TEMP", "HUMI"]
-  
+  features: ["MQ136", "MQ137", "TEMP", "HUMI"]
+
 # Classes (smell categories)
 classes:
-  - "Normal"
-  - "Coffee"
-  - "CocaCola"
-  - "RedBull"
-  - "Apple_Juice"
-  - "Sweet_Tea"
-  - "Water"
+  - "Thit loai 1"
+  - "Thit loai 2"
+  - "Thit loai 3"
+  - "Thi loai 4"
+  - "Thit hong"
 
 # Visualization
 plots:

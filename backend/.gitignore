@@ -197,3 +197,4 @@ secrets.yaml
 .cache/
 *.cache
 
+venv/
