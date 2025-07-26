@@ -16,7 +16,7 @@ def load_data(path: str):
 X, y = load_data('processed_data.csv')
 
 # Load scaler and transform features
-scaler = joblib.load('scaler.pkl')
+scaler = joblib.load('../models/scaler.pkl')
 X_scaled = scaler.transform(X)
 
 # Split data (same split as base models)
@@ -26,10 +26,10 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 # Load base (level-0) models
 models = {
-    'rf': joblib.load('random_forest_model.pkl'),
-    'xgb': joblib.load('xgboost_model.pkl'),
-    'knn': joblib.load('knn_model.pkl'),
-    'ann': joblib.load('ann_model.pkl'),
+    'rf': joblib.load('../models/random_forest_model.pkl'),
+    'xgb': joblib.load('../models/xgboost_model.pkl'),
+    'knn': joblib.load('../models/knn_model.pkl'),
+    'ann': joblib.load('../models/ann_model.pkl'),
 }
 
 
@@ -56,5 +56,5 @@ preds = meta_model.predict(meta_test)
 acc = accuracy_score(y_test, preds)
 print(f"Meta-Model Accuracy on Test Set: {acc:.4f}")
 
-joblib.dump(meta_model, 'meta_model.pkl')
+joblib.dump(meta_model, '../models/meta_model.pkl')
 print("Meta-model trained and saved as 'meta_model.pkl'.")

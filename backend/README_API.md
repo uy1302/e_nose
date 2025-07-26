@@ -71,7 +71,7 @@ POST /predict/thingspeak
 Content-Type: application/json
 
 {
-    "api_key": "RJNVLFM0O88JP765"
+    "api_key": "P91SEPV5ZZG00Y4S"
 }
 ```
 
@@ -149,7 +149,7 @@ POST /thingspeak/data
 Content-Type: application/json
 
 {
-    "api_key": "RJNVLFM0O88JP765",
+    "api_key": "P91SEPV5ZZG00Y4S",
     "results": 10
 }
 ```
@@ -207,7 +207,7 @@ fetch('http://localhost:5000/predict/thingspeak', {
         'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-        api_key: 'RJNVLFM0O88JP765'
+        api_key: 'P91SEPV5ZZG00Y4S'
     })
 })
 .then(response => response.json())

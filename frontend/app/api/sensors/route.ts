@@ -1,33 +1,18 @@
+import { NextResponse } from 'next/server'
+
 export async function GET() {
-  try {
-    const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:5000'
-
-    const response = await fetch(`${backendUrl}/sensors`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-      throw new Error(errorData.error || `Backend API error: ${response.status}`)
+  return NextResponse.json({
+    sensor_features: ['MQ136', 'MQ137', 'TEMP', 'HUMI'],
+    sensor_count: 4,
+    sensor_types: {
+      gas_sensors: ['MQ136', 'MQ137'],
+      environmental_sensors: ['TEMP', 'HUMI']
+    },
+    sensor_descriptions: {
+      'MQ136': 'Cảm biến khí đa năng',
+      'MQ137': 'Cảm biến khí ammonia',
+      'TEMP': 'Nhiệt độ (°C)',
+      'HUMI': 'Độ ẩm (%)'
     }
-
-    const apiResponse = await response.json()
-    return Response.json(apiResponse)
-
-  } catch (error) {
-    console.error('Sensors API error:', error)
-    
-    // Return detailed error message
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : 'Có lỗi xảy ra khi tải thông tin cảm biến'
-    
-    return Response.json(
-      { error: errorMessage }, 
-      { status: 500 }
-    )
-  }
+  })
 }

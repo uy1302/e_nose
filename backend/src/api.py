@@ -40,7 +40,7 @@ def predict():
     
     Expected JSON payload:
     {
-        "sensor_data": [MQ2, MQ3, MQ4, MQ6, MQ7, MQ135, TEMP, HUMI]
+        "sensor_data": [MQ136, MQ137, TEMP, HUMI]
     }
     """
     try:
@@ -50,19 +50,19 @@ def predict():
             return jsonify({
                 'error': 'Missing sensor_data in request body',
                 'expected_format': {
-                    'sensor_data': [815.0, 2530.0, 1075.0, 2510.0, 1435.0, 2160.0, 37.0, 72.0]
+                    'sensor_data': [1652.0, 1587.0, 34.1, 99.2]
                 }
             }), 400
         
         sensor_data = data['sensor_data']
         
         # Validate sensor data
-        if len(sensor_data) != 8:
+        if len(sensor_data) != 4:
             return jsonify({
-                'error': 'sensor_data must contain exactly 8 values',
+                'error': 'sensor_data must contain exactly 4 values',
                 'received': len(sensor_data),
-                'expected': 8,
-                'sensor_names': config.sensor_features
+                'expected': 4,
+                'sensor_names': ['MQ136', 'MQ137', 'TEMP', 'HUMI']
             }), 400
         
         # Convert to float and validate
@@ -80,12 +80,13 @@ def predict():
         # Add metadata
         result['metadata'] = {
             'timestamp': datetime.now().isoformat(),
-            'sensor_names': config.sensor_features,
+            'sensor_names': ['MQ136', 'MQ137', 'TEMP', 'HUMI'],
             'model_versions': {
                 'ann': 'v1.0',
                 'random_forest': 'v1.0', 
                 'xgboost': 'v1.0',
-                'knn': 'v1.0'
+                'knn': 'v1.0',
+                'meta': 'v1.0'
             }
         }
         
@@ -107,7 +108,7 @@ def predict_thingspeak():
     
     Expected JSON payload:
     {
-        "api_key": "RJNVLFM0O88JP765"
+        "api_key": "P91SEPV5ZZG00Y4S"
     }
     """
     try:
@@ -117,7 +118,7 @@ def predict_thingspeak():
             return jsonify({
                 'error': 'Missing api_key in request body',
                 'expected_format': {
-                    'api_key': 'RJNVLFM0O88JP765'
+                    'api_key': 'P91SEPV5ZZG00Y4S'
                 }
             }), 400
         
@@ -147,7 +148,7 @@ def predict_thingspeak():
         # Add ThingSpeak metadata
         result['metadata'] = {
             'timestamp': datetime.now().isoformat(),
-            'sensor_names': config.sensor_features,
+            'sensor_names': ['MQ136', 'MQ137', 'TEMP', 'HUMI'],
             'thingspeak': {
                 'records_fetched': len(thingspeak_data),
                 'latest_entry_time': thingspeak_data[-1].get('created_at'),
@@ -157,7 +158,8 @@ def predict_thingspeak():
                 'ann': 'v1.0',
                 'random_forest': 'v1.0',
                 'xgboost': 'v1.0',
-                'knn': 'v1.0'
+                'knn': 'v1.0',
+                'meta': 'v1.0'
             }
         }
         
@@ -176,21 +178,17 @@ def predict_thingspeak():
 def get_sensors():
     """Get sensor configuration and information"""
     return jsonify({
-        'sensor_features': config.sensor_features,
-        'sensor_count': len(config.sensor_features),
+        'sensor_features': ['MQ136', 'MQ137', 'TEMP', 'HUMI'],
+        'sensor_count': 4,
         'sensor_types': {
-            'gas_sensors': ['MQ2', 'MQ3', 'MQ4', 'MQ6', 'MQ7', 'MQ135'],
+            'gas_sensors': ['MQ136', 'MQ137'],
             'environmental_sensors': ['TEMP', 'HUMI']
         },
         'sensor_descriptions': {
-            'MQ2': 'Smoke, Propane, Hydrogen',
-            'MQ3': 'Alcohol, Ethanol',
-            'MQ4': 'Methane, CNG Gas',
-            'MQ6': 'LPG, Propane Gas',
-            'MQ7': 'Carbon Monoxide',
-            'MQ135': 'Air Quality (Ammonia, Sulfide)',
-            'TEMP': 'Temperature (°C)',
-            'HUMI': 'Humidity (%)'
+            'MQ136': 'Cảm biến khí đa năng',
+            'MQ137': 'Cảm biến khí ammonia',
+            'TEMP': 'Nhiệt độ (°C)',
+            'HUMI': 'Độ ẩm (%)'
         }
     })
 
@@ -203,35 +201,42 @@ def get_models():
             'ann': {
                 'name': 'Artificial Neural Network',
                 'type': 'deep_learning',
-                'accuracy': '100%',
-                'description': 'Deep neural network with regularization'
+                'accuracy': '97.19%',
+                'description': 'Mạng neural nhân tạo với regularization'
             },
             'random_forest': {
                 'name': 'Random Forest',
                 'type': 'ensemble',
-                'accuracy': '100%',
-                'description': 'Ensemble of decision trees'
+                'accuracy': '97.39%',
+                'description': 'Ensemble của các decision trees'
             },
             'xgboost': {
                 'name': 'XGBoost',
                 'type': 'gradient_boosting',
-                'accuracy': '100%',
-                'description': 'Gradient boosting algorithm'
+                'accuracy': '97.47%',
+                'description': 'Gradient boosting tối ưu hóa'
             },
             'knn': {
                 'name': 'K-Nearest Neighbors',
                 'type': 'instance_based',
-                'accuracy': '100%',
-                'description': 'Distance-based classification algorithm'
+                'accuracy': '97.46%',
+                'description': 'Thuật toán dựa trên khoảng cách'
+            },
+            'meta': {
+                'name': 'Meta Model',
+                'type': 'meta_learning',
+                'accuracy': '97.61%',
+                'description': 'Linear Regression kết hợp các mô hình cơ sở'
             }
         },
         'classes': [
-            'fish_sauce',
-            'garlic', 
-            'lemon',
-            'milk'
+            'Thịt loại 1',
+            'Thịt loại 2',
+            'Thịt loại 3',
+            'Thịt loại 4',
+            'Thịt hỏng'
         ],
-        'ensemble_method': 'majority_vote'
+        'ensemble_method': 'meta_learning'
     })
 
 # Get ThingSpeak data endpoint
@@ -242,7 +247,7 @@ def get_thingspeak_data():
     
     Expected JSON payload:
     {
-        "api_key": "RJNVLFM0O88JP765",
+        "api_key": "P91SEPV5ZZG00Y4S",
         "results": 10
     }
     """

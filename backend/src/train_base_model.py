@@ -6,6 +6,7 @@ from xgboost import XGBClassifier
 from sklearn.neighbors import KNeighborsClassifier           # thêm KNN
 from sklearn.neural_network import MLPClassifier
 import joblib
+import json
 
 # 1. Load dữ liệu
 df = pd.read_csv('processed_data.csv')
@@ -77,7 +78,7 @@ ann_param_grid = {
     'hidden_layer_sizes': [(50,), (100,), (50, 50)],
     'activation': ['relu', 'tanh'],
     'solver': ['adam', 'sgd'],
-    'max_iter': [200, 300]
+    'max_iter': [200, 300, 1000]
 }
 ann_grid_search = GridSearchCV(
     MLPClassifier(random_state=42),
@@ -89,10 +90,34 @@ print("Best ANN parameters:", ann_grid_search.best_params_)
 print("Best ANN accuracy:", ann_grid_search.best_score_)
 
 # 4. Lưu model và scaler
-joblib.dump(rf_grid_search.best_estimator_, 'random_forest_model.pkl')
-joblib.dump(xgb_grid_search.best_estimator_, 'xgboost_model.pkl')
-joblib.dump(knn_grid_search.best_estimator_, 'knn_model.pkl')   
-joblib.dump(ann_grid_search.best_estimator_, 'ann_model.pkl')
-joblib.dump(scaler, 'scaler.pkl')
+joblib.dump(rf_grid_search.best_estimator_, '../models/random_forest_model.pkl')
+joblib.dump(xgb_grid_search.best_estimator_, '../models/xgboost_model.pkl')
+joblib.dump(knn_grid_search.best_estimator_, '../models/knn_model.pkl')   
+joblib.dump(ann_grid_search.best_estimator_, '../models/ann_model.pkl')
+joblib.dump(scaler, '../models/scaler.pkl')
+
+# 5. Lưu kết quả training ra file JSON
+training_results = {
+    "RandomForest": {
+        "best_params": rf_grid_search.best_params_,
+        "best_accuracy": float(rf_grid_search.best_score_)
+    },
+    "XGBoost": {
+        "best_params": xgb_grid_search.best_params_,
+        "best_accuracy": float(xgb_grid_search.best_score_)
+    },
+    "KNN": {
+        "best_params": knn_grid_search.best_params_,
+        "best_accuracy": float(knn_grid_search.best_score_)
+    },
+    "ANN": {
+        "best_params": ann_grid_search.best_params_,
+        "best_accuracy": float(ann_grid_search.best_score_)
+    }
+}
+with open('training_results.json', 'w') as f:
+    json.dump(training_results, f, indent=4)
+
 
 print("Tất cả mô hình đã được huấn luyện và lưu.")
+print("Kết quả training đã được lưu vào 'training_results.json'.")

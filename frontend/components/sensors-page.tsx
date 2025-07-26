@@ -24,12 +24,8 @@ interface SensorInfo {
 const sensorIcons: { [key: string]: React.ReactNode } = {
   TEMP: <Thermometer className="h-4 w-4" />,
   HUMI: <Droplets className="h-4 w-4" />,
-  MQ2: <Wind className="h-4 w-4" />,
-  MQ3: <Wind className="h-4 w-4" />,
-  MQ4: <Wind className="h-4 w-4" />,
-  MQ6: <Wind className="h-4 w-4" />,
-  MQ7: <Wind className="h-4 w-4" />,
-  MQ135: <Wind className="h-4 w-4" />,
+  MQ136: <Wind className="h-4 w-4" />,
+  MQ137: <Wind className="h-4 w-4" />,
 }
 
 export default function SensorsPage() {
@@ -105,15 +101,15 @@ export default function SensorsPage() {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold">{sensorInfo.sensor_count}</div>
+              <div className="text-2xl font-bold">4</div>
               <div className="text-sm text-muted-foreground">Tổng số cảm biến</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold">{sensorInfo.sensor_types.gas_sensors.length}</div>
+              <div className="text-2xl font-bold">2</div>
               <div className="text-sm text-muted-foreground">Cảm biến khí</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold">{sensorInfo.sensor_types.environmental_sensors.length}</div>
+              <div className="text-2xl font-bold">2</div>
               <div className="text-sm text-muted-foreground">Cảm biến môi trường</div>
             </div>
           </div>

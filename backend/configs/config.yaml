@@ -48,11 +48,11 @@ sensors:
 
 # Classes (smell categories)
 classes:
-  - "Thit loai 1"
-  - "Thit loai 2"
-  - "Thit loai 3"
-  - "Thi loai 4"
-  - "Thit hong"
+  - "Thịt loại 1"
+  - "Thịt loại 2"
+  - "Thịt loại 3"
+  - "Thịt loại 4"
+  - "Thịt hỏng"
 
 # Visualization
 plots:

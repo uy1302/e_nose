@@ -112,10 +112,10 @@ export default function HomePage() {
                   transition={{ duration: 0.6, delay: 0.3 }}
                 >
                   {[
-                    { title: "Tổng số cảm biến", value: "8", desc: "6 cảm biến khí + 2 cảm biến môi trường" },
-                    { title: "Mô hình AI", value: "4", desc: "ANN, Random Forest, XGBoost, KNN" },
-                    { title: "Loại mùi", value: "4", desc: "Nước mắm, Tỏi, Chanh, Sữa" },
-                    { title: "Độ chính xác", value: "100%", desc: "Trên tập dữ liệu test" }
+                    { title: "Tổng số cảm biến", value: "4", desc: "2 cảm biến khí + 2 cảm biến môi trường" },
+                    { title: "Mô hình AI", value: "5", desc: "ANN, RF, XGBoost, KNN + Meta Model" },
+                    { title: "Loại mùi", value: "5", desc: "Thịt loại 1-4 + Thịt hỏng" },
+                    { title: "Độ chính xác", value: "97.61%", desc: "Meta Model trên tập test" }
                   ].map((item, index) => (
                     <motion.div
                       key={item.title}
@@ -142,28 +142,31 @@ export default function HomePage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.8 }}
                 >
-                  <Card className="card-hover-glow glass-morphism">
+                  <Card className="card-hover-glow">
                     <CardHeader>
                       <CardTitle>Giới thiệu hệ thống</CardTitle>
                       <CardDescription>E-Nose - Electronic Nose System</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <p className="text-sm">
-                        Hệ thống mũi điện tử sử dụng 8 cảm biến để phát hiện và phân loại mùi. Dữ liệu từ các cảm biến được xử
-                        lý bởi 4 mô hình AI khác nhau để đưa ra dự đoán chính xác về loại mùi.
+                        Hệ thống mũi điện tử sử dụng 4 cảm biến để phát hiện và phân loại mùi thịt. Dữ liệu từ các cảm biến được xử
+                        lý bởi 5 mô hình AI (4 mô hình cơ sở + 1 meta model) để đưa ra dự đoán chính xác về chất lượng thịt.
                       </p>
                       <div className="space-y-1">
                         <p className="text-sm">
-                          <strong>Cảm biến khí:</strong> MQ2, MQ3, MQ4, MQ6, MQ7, MQ135
+                          <strong>Cảm biến khí:</strong> MQ136, MQ137
                         </p>
                         <p className="text-sm">
-                          <strong>Cảm biến môi trường:</strong> Nhiệt độ, Độ ẩm
+                          <strong>Cảm biến môi trường:</strong> Nhiệt độ (TEMP), Độ ẩm (HUMI)
+                        </p>
+                        <p className="text-sm">
+                          <strong>Loại thịt phân loại:</strong> Thịt loại 1, 2, 3, 4 và Thịt hỏng
                         </p>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="card-hover-glow glass-morphism">
+                  <Card className="card-hover-glow">
                     <CardHeader>
                       <CardTitle>Hướng dẫn sử dụng</CardTitle>
                       <CardDescription>Các bước để thực hiện dự đoán</CardDescription>
@@ -172,9 +175,9 @@ export default function HomePage() {
                       <div className="space-y-2">
                         {[
                           'Chuyển đến tab "Dự đoán"',
-                          'Nhập dữ liệu 8 cảm biến',
+                          'Nhập dữ liệu 4 cảm biến (MQ136, MQ137, TEMP, HUMI)',
                           'Nhấn "Dự đoán" để xem kết quả',
-                          'Xem kết quả từ 4 mô hình AI'
+                          'Xem kết quả từ 5 mô hình AI và kết quả cuối cùng từ Meta Model'
                         ].map((step, index) => (
                           <motion.div
                             key={step}

@@ -6,17 +6,31 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Thermometer, Droplets, Wind, Gauge, Zap, Activity } from "lucide-react"
 
-interface SensorDetailModalProps {
-  isOpen: boolean
-  onClose: () => void
-  sensor: string
-  sensorInfo: {
-    sensor_descriptions: { [key: string]: string }
-    sensor_types: {
-      gas_sensors: string[]
-      environmental_sensors: string[]
-    }
-  }
+interface SensorDetail {
+  fullName: string
+  detectedGases?: string[]
+  detectedParameters?: string[]
+  workingVoltage?: string
+  heatingVoltage?: string
+  loadResistance?: string
+  heatingResistance?: string
+  sensingResistance?: string
+  range?: string
+  detectionRange?: string
+  measurementRange?: string
+  accuracy?: string
+  operatingTemp?: string
+  operatingHumidity?: string
+  responseTime?: string
+  recoveryTime?: string
+  preheatingTime?: string
+  resolution?: string
+  samplingRate?: string
+  description?: string
+  applications?: string[]
+  characteristics?: string[]
+  specifications?: { [key: string]: string }
+  color?: string
 }
 
 const sensorIcons: { [key: string]: React.ReactNode } = {
@@ -30,8 +44,8 @@ const sensorIcons: { [key: string]: React.ReactNode } = {
   MQ135: <Wind className="h-6 w-6" />,
 }
 
-const getSensorDetails = (sensor: string) => {
-  const details: { [key: string]: any } = {
+const getSensorDetails = (sensor: string): SensorDetail => {
+  const details: { [key: string]: SensorDetail } = {
     MQ2: {
       fullName: "Cảm biến khí MQ-2",
       detectedGases: ["LPG", "Propane", "Methane", "Alcohol", "Hydrogen", "Smoke"],
@@ -145,10 +159,20 @@ const getSensorDetails = (sensor: string) => {
   return details[sensor] || {}
 }
 
-export default function SensorDetailModal({ isOpen, onClose, sensor, sensorInfo }: SensorDetailModalProps) {
+export default function SensorDetailModal({ isOpen, onClose, sensor, sensorInfo }: {
+  isOpen: boolean
+  onClose: () => void
+  sensor: string
+  sensorInfo: {
+    sensor_descriptions: { [key: string]: string }
+    sensor_types: {
+      gas_sensors: string[]
+      environmental_sensors: string[]
+    }
+  }
+}) {
   const sensorDetail = getSensorDetails(sensor)
   const isGasSensor = sensorInfo.sensor_types.gas_sensors.includes(sensor)
-  const isEnvironmentalSensor = sensorInfo.sensor_types.environmental_sensors.includes(sensor)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

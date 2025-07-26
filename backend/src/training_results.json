@@ -1,0 +1,37 @@
+{
+    "RandomForest": {
+        "best_params": {
+            "max_features": "sqrt",
+            "n_estimators": 100,
+            "random_state": 42
+        },
+        "best_accuracy": 0.973931466356559
+    },
+    "XGBoost": {
+        "best_params": {
+            "learning_rate": 0.1,
+            "n_estimators": 100,
+            "random_state": 42
+        },
+        "best_accuracy": 0.9747172589502295
+    },
+    "KNN": {
+        "best_params": {
+            "metric": "manhattan",
+            "n_neighbors": 3,
+            "weights": "uniform"
+        },
+        "best_accuracy": 0.9745603963985738
+    },
+    "ANN": {
+        "best_params": {
+            "activation": "relu",
+            "hidden_layer_sizes": [
+                100
+            ],
+            "max_iter": 1000,
+            "solver": "adam"
+        },
+        "best_accuracy": 0.9718906500300284
+    }
+}

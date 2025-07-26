@@ -1,7 +1,22 @@
+import { NextResponse } from 'next/server'
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
     const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:5000'
+
+    // Validate sensor data
+    if (!body.sensor_data || !Array.isArray(body.sensor_data) || body.sensor_data.length !== 4) {
+      return NextResponse.json(
+        { 
+          error: 'sensor_data phải chứa đúng 4 giá trị', 
+          received: body.sensor_data?.length || 0,
+          expected: 4,
+          sensor_names: ['MQ136', 'MQ137', 'TEMP', 'HUMI']
+        },
+        { status: 400 }
+      )
+    }
 
     const response = await fetch(`${backendUrl}/predict`, {
       method: 'POST',

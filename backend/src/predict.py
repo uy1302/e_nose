@@ -6,6 +6,37 @@ import sys
 from config import config
 
 
+def map_label_to_meat_type(label):
+    """
+    Map numeric label to meat type name
+    
+    Args:
+        label: Numeric label (0-4) or string representation
+    
+    Returns:
+        String: Meat type name
+    """
+    # Convert to int if it's string representation of number
+    try:
+        if isinstance(label, str):
+            # Handle string numbers like "0.0", "1", etc.
+            numeric_label = int(float(label))
+        else:
+            numeric_label = int(label)
+    except (ValueError, TypeError):
+        return str(label)  # Return as-is if conversion fails
+    
+    label_map = {
+        0: "Thịt loại 1",
+        1: "Thịt loại 2", 
+        2: "Thịt loại 3",
+        3: "Thịt loại 4",
+        4: "Thịt hỏng"
+    }
+    
+    return label_map.get(numeric_label, f"Unknown_{numeric_label}")
+
+
 def get_meta_features(models: dict, X: np.ndarray) -> np.ndarray:
     """
     Generate meta-features by concatenating each base model's probability outputs or decision scores.
@@ -25,7 +56,7 @@ def predict_with_models(input_data):
     Make predictions using all base models and a meta-model
 
     Parameters:
-    input_data (list or array): List of sensor readings [MQ2, MQ3, MQ4, MQ6, MQ7, MQ135, TEMP, HUMI]
+    input_data (list or array): List of sensor readings [MQ136, MQ137, TEMP, HUMI]
 
     Returns:
     dict: Predictions from all models including meta-model with class labels and probabilities
@@ -33,16 +64,16 @@ def predict_with_models(input_data):
     input_array = np.array(input_data).reshape(1, -1)
 
     # Load scaler only
-    scaler = joblib.load(config.get_preprocessing_path('scaler'))
+    scaler = joblib.load('../models/scaler.pkl')
 
     # Scale input
     input_scaled = scaler.transform(input_array)
 
     # Load base models
-    rf_model  = joblib.load(config.get_model_path('random_forest'))
-    xgb_model = joblib.load(config.get_model_path('xgboost'))
-    knn_model = joblib.load(config.get_model_path('knn'))
-    ann_model = joblib.load(config.get_model_path('ann'))  # MLPClassifier
+    rf_model  = joblib.load('../models/random_forest_model.pkl')
+    xgb_model = joblib.load('../models/xgboost_model.pkl')
+    knn_model = joblib.load('../models/knn_model.pkl')
+    ann_model = joblib.load('../models/ann_model.pkl')  # MLPClassifier
 
     base_models = {'rf': rf_model, 'xgb': xgb_model, 'knn': knn_model, 'ann': ann_model}
 
@@ -54,32 +85,32 @@ def predict_with_models(input_data):
 
     # Random Forest prediction
     rf_pred  = rf_model.predict(input_scaled)[0]
-    rf_label = rf_pred if rf_pred in rf_model.classes_ else str(rf_pred)
+    rf_label = str(rf_pred) if hasattr(rf_pred, 'dtype') else rf_pred
 
     # XGBoost prediction
     xgb_pred  = xgb_model.predict(input_scaled)[0]
-    xgb_label = xgb_pred if xgb_pred in xgb_model.classes_ else str(xgb_pred)
+    xgb_label = str(xgb_pred) if hasattr(xgb_pred, 'dtype') else xgb_pred
 
     # KNN prediction
     knn_pred  = knn_model.predict(input_scaled)[0]
-    knn_label = knn_pred if knn_pred in knn_model.classes_ else str(knn_pred)
+    knn_label = str(knn_pred) if hasattr(knn_pred, 'dtype') else knn_pred
 
     # Meta-model prediction
     meta_X      = get_meta_features(base_models, input_scaled)
-    meta_model  = joblib.load(config.get_model_path('meta_model'))
+    meta_model  = joblib.load('../models/meta_model.pkl')
     meta_prob   = meta_model.predict_proba(meta_X)
     meta_index  = np.argmax(meta_prob, axis=1)[0]
-    meta_label  = meta_model.classes_[meta_index]
+    meta_label  = str(meta_model.classes_[meta_index])
     meta_conf   = float(meta_prob[0, meta_index])
 
     return {
         'input_data': input_data,
         'predictions': {
-            'ann':   {'class_label': ann_label,  'probability': round(ann_conf, 4)},
-            'random_forest': {'class_label': rf_label},
-            'xgboost':      {'class_label': xgb_label},
-            'knn':          {'class_label': knn_label},
-            'meta':         {'class_label': meta_label, 'probability': round(meta_conf, 4)}
+            'ann':   {'class_label': map_label_to_meat_type(ann_label),  'probability': round(ann_conf, 4)},
+            'random_forest': {'class_label': map_label_to_meat_type(rf_label)},
+            'xgboost':      {'class_label': map_label_to_meat_type(xgb_label)},
+            'knn':          {'class_label': map_label_to_meat_type(knn_label)},
+            'meta':         {'class_label': map_label_to_meat_type(meta_label), 'probability': round(meta_conf, 4)}
         }
     }
 
@@ -91,7 +122,7 @@ if __name__ == "__main__":
             print("All sensor readings must be numeric.")
             sys.exit(1)
     else:
-        print("Usage: python predict.py MQ7 MQ135 TEMP HUMI")
+        print("Usage: python predict.py MQ136 MQ137 TEMP HUMI")
         sys.exit(1)
 
     result = predict_with_models(sensor_readings)

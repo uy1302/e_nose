@@ -14,7 +14,7 @@ def fetch_thingspeak_data(api_key, results=10):
         list: List of feed data or None if failed
     """
     try:
-        response = requests.get(f"https://api.thingspeak.com/channels/2924635/feeds.json?api_key={api_key}&results={results}")
+        response = requests.get(f"https://api.thingspeak.com/channels/3018524/feeds.json?api_key={api_key}&results={results}")
         
         if response.status_code == 200:
             return response.json().get("feeds", [])
@@ -61,19 +61,22 @@ def process_thingspeak_data(data):
         data (list): List of ThingSpeak feed data
     
     Returns:
-        list: List of average sensor values [MQ2, MQ3, MQ4, MQ6, MQ7, MQ135, TEMP, HUMI] or None if failed
+        list: List of average sensor values [MQ136, MQ137, TEMP, HUMI] or None if failed
     """
     if not data:
         return None
     
     # Calculate average values from all entries
     try:
-        field_sums = [0.0] * 4  # 4 fields (field5 to field8)
+        field_sums = [0.0] * 4  # 4 fields: MQ136, MQ137, TEMP, HUMI
         field_counts = [0] * 4
+
+        # Map ThingSpeak fields to our sensors: MQ136, MQ137, TEMP, HUMI
+        field_mapping = ["field1", "field2", "field3", "field4"]
 
         # Sum all valid field values
         for entry in data:
-            for i, field_name in enumerate(["field1", "field2", "field3", "field4"]):
+            for i, field_name in enumerate(field_mapping):
                 field_value = entry.get(field_name)
                 if field_value is not None and field_value != "":
                     try:
@@ -85,7 +88,7 @@ def process_thingspeak_data(data):
         
         # Calculate averages and round to 2 decimal places
         sensor_values = []
-        for i in range(8):
+        for i in range(4):
             if field_counts[i] > 0:
                 average_value = field_sums[i] / field_counts[i]
                 sensor_values.append(round(average_value, 2))
@@ -100,7 +103,7 @@ def process_thingspeak_data(data):
         return None
 
 
-def fetch_and_save_data(api_key="RJNVLFM0O88JP765", results=50, filename="output.csv"):
+def fetch_and_save_data(api_key="P91SEPV5ZZG00Y4S", results=50, filename="output.csv"):
     """
     Fetch data from ThingSpeak and save to CSV
     
@@ -120,5 +123,5 @@ def fetch_and_save_data(api_key="RJNVLFM0O88JP765", results=50, filename="output
 
 # For backward compatibility when running directly
 if __name__ == "__main__":
-    api_key = "RJNVLFM0O88JP765"
+    api_key = "P91SEPV5ZZG00Y4S"
     fetch_and_save_data(api_key)

@@ -6,8 +6,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Cloud, RefreshCw, Brain, TreePine, Zap, Network } from "lucide-react"
+import { Loader2, Cloud, RefreshCw, Brain, TreePine, Zap, Network, Target, ChevronDown } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+
+interface CollapsibleProps {
+  title: string
+  children: React.ReactNode
+  defaultOpen?: boolean
+}
+
+function Collapsible({ title, children, defaultOpen = false }: CollapsibleProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen)
+
+  return (
+    <div className="border border-border rounded-lg">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-muted/50 transition-colors"
+      >
+        <span className="font-medium">{title}</span>
+        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+      {isOpen && (
+        <div className="px-4 pb-4 border-t border-border">
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
 
 interface ThingSpeakData {
   channel_id: string
@@ -26,26 +53,20 @@ interface ThingSpeakData {
   last_entry_id: number
 }
 
+interface PredictionResult {
+  class_id?: number
+  class_label: string
+  probability?: number
+}
+
 interface ThingSpeakPrediction {
   input_data: number[]
   predictions: {
-    ann: {
-      class_id: number
-      class_label: string
-      probability: number
-    }
-    random_forest: {
-      class_id: number
-      class_label: string
-    }
-    xgboost: {
-      class_id: number
-      class_label: string
-    }
-    knn: {
-      class_id: number
-      class_label: string
-    }
+    ann: PredictionResult
+    random_forest: PredictionResult
+    xgboost: PredictionResult
+    knn: PredictionResult
+    meta?: PredictionResult
   }
   thingspeak_data?: ThingSpeakData  // Optional for backward compatibility
   metadata: {
@@ -60,14 +81,15 @@ interface ThingSpeakPrediction {
 }
 
 const odorLabels: { [key: string]: string } = {
-  fish_sauce: "Nước mắm",
-  garlic: "Tỏi",
-  lemon: "Chanh",
-  milk: "Sữa",
+  "Thịt loại 1": "Thịt loại 1",
+  "Thịt loại 2": "Thịt loại 2", 
+  "Thịt loại 3": "Thịt loại 3",
+  "Thịt loại 4": "Thịt loại 4",
+  "Thịt hỏng": "Thịt hỏng",
 }
 
 export default function ThingSpeakPage() {
-  const [apiKey, setApiKey] = useState("RJNVLFM0O88JP765")
+  const [apiKey, setApiKey] = useState("P91SEPV5ZZG00Y4S")
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<ThingSpeakPrediction | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -233,51 +255,81 @@ export default function ThingSpeakPage() {
             </Card>
           )}
 
-          {/* Prediction Results */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-                <Brain className="h-4 w-4 mr-2" />
-                <CardTitle className="text-sm font-medium">Neural Network (ANN)</CardTitle>
+          {/* Meta Model Result - Main Result */}
+          {result.predictions.meta && (
+            <Card className="border-2 border-primary">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Target className="h-5 w-5 mr-2" />
+                  Kết quả dự đoán cuối cùng (Meta Model)
+                </CardTitle>
+                <CardDescription>
+                  Kết quả được tối ưu hóa từ 4 mô hình AI cơ sở với dữ liệu ThingSpeak
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{odorLabels[result.predictions.ann.class_label] || result.predictions.ann.class_label}</div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  Độ tin cậy: {(result.predictions.ann.probability * 100).toFixed(2)}%
+                <div className="text-center space-y-4">
+                  <div className="text-4xl font-bold text-primary">
+                    {odorLabels[result.predictions.meta.class_label] || result.predictions.meta.class_label}
+                  </div>
+                  <div className="text-lg text-muted-foreground">
+                    Độ tin cậy: {((result.predictions.meta?.probability || 0) * 100).toFixed(2)}%
+                  </div>
+                  <Badge variant="default" className="text-sm px-4 py-2">
+                    Meta Model 
+                  </Badge>
                 </div>
               </CardContent>
             </Card>
+          )}
 
-            <Card>
-              <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-                <TreePine className="h-4 w-4 mr-2" />
-                <CardTitle className="text-sm font-medium">Random Forest</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{odorLabels[result.predictions.random_forest.class_label] || result.predictions.random_forest.class_label}</div>
-              </CardContent>
-            </Card>
+          {/* Base Models in Collapsible */}
+          <Collapsible title="Chi tiết kết quả từ 4 mô hình cơ sở" defaultOpen={false}>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+                  <Brain className="h-4 w-4 mr-2" />
+                  <CardTitle className="text-sm font-medium">Neural Network (ANN)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xl font-bold">{odorLabels[result.predictions.ann.class_label] || result.predictions.ann.class_label}</div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    Độ tin cậy: {((result.predictions.ann.probability || 0) * 100).toFixed(2)}%
+                  </div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-                <Zap className="h-4 w-4 mr-2" />
-                <CardTitle className="text-sm font-medium">XGBoost</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{odorLabels[result.predictions.xgboost.class_label] || result.predictions.xgboost.class_label}</div>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+                  <TreePine className="h-4 w-4 mr-2" />
+                  <CardTitle className="text-sm font-medium">Random Forest</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xl font-bold">{odorLabels[result.predictions.random_forest.class_label] || result.predictions.random_forest.class_label}</div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-                <Network className="h-4 w-4 mr-2" />
-                <CardTitle className="text-sm font-medium">K-Nearest Neighbors</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{odorLabels[result.predictions.knn.class_label] || result.predictions.knn.class_label}</div>
-              </CardContent>
-            </Card>
-          </div>
+              <Card>
+                <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+                  <Zap className="h-4 w-4 mr-2" />
+                  <CardTitle className="text-sm font-medium">XGBoost</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xl font-bold">{odorLabels[result.predictions.xgboost.class_label] || result.predictions.xgboost.class_label}</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+                  <Network className="h-4 w-4 mr-2" />
+                  <CardTitle className="text-sm font-medium">K-Nearest Neighbors</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xl font-bold">{odorLabels[result.predictions.knn.class_label] || result.predictions.knn.class_label}</div>
+                </CardContent>
+              </Card>
+            </div>
+          </Collapsible>
 
           {/* Sensor Data */}
           <Card>

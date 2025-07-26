@@ -1,33 +1,46 @@
+import { NextResponse } from 'next/server'
+
 export async function GET() {
-  try {
-    const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:5000'
-
-    const response = await fetch(`${backendUrl}/models`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
+  return NextResponse.json({
+    models: {
+      ann: {
+        name: 'Artificial Neural Network',
+        type: 'deep_learning',
+        accuracy: '97.19%',
+        description: 'Mạng neural nhân tạo với regularization'
       },
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-      throw new Error(errorData.error || `Backend API error: ${response.status}`)
-    }
-
-    const apiResponse = await response.json()
-    return Response.json(apiResponse)
-
-  } catch (error) {
-    console.error('Models API error:', error)
-    
-    // Return detailed error message
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : 'Có lỗi xảy ra khi tải thông tin mô hình'
-    
-    return Response.json(
-      { error: errorMessage }, 
-      { status: 500 }
-    )
-  }
+      random_forest: {
+        name: 'Random Forest',
+        type: 'ensemble',
+        accuracy: '97.39%',
+        description: 'Ensemble của các decision trees'
+      },
+      xgboost: {
+        name: 'XGBoost',
+        type: 'gradient_boosting',
+        accuracy: '97.47%',
+        description: 'Gradient boosting tối ưu hóa'
+      },
+      knn: {
+        name: 'K-Nearest Neighbors',
+        type: 'instance_based',
+        accuracy: '97.46%',
+        description: 'Thuật toán dựa trên khoảng cách'
+      },
+      meta: {
+        name: 'Meta Model',
+        type: 'meta_learning',
+        accuracy: '97.61%',
+        description: 'Linear Regression kết hợp các mô hình cơ sở'
+      }
+    },
+    classes: [
+      'Thịt loại 1',
+      'Thịt loại 2', 
+      'Thịt loại 3',
+      'Thịt loại 4',
+      'Thịt hỏng'
+    ],
+    ensemble_method: 'meta_learning'
+  })
 }

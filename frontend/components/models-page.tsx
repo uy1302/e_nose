@@ -26,13 +26,15 @@ const modelIcons: { [key: string]: React.ReactNode } = {
   random_forest: <TreePine className="h-5 w-5" />,
   xgboost: <Zap className="h-5 w-5" />,
   knn: <Network className="h-5 w-5" />,
+  meta: <Target className="h-5 w-5" />,
 }
 
 const odorLabels: { [key: string]: string } = {
-  fish_sauce: "Nước mắm",
-  garlic: "Tỏi",
-  lemon: "Chanh",
-  milk: "Sữa",
+  "Thịt loại 1": "Thịt loại 1",
+  "Thịt loại 2": "Thịt loại 2", 
+  "Thịt loại 3": "Thịt loại 3",
+  "Thịt loại 4": "Thịt loại 4",
+  "Thịt hỏng": "Thịt hỏng",
 }
 
 const typeColors: { [key: string]: string } = {
@@ -40,6 +42,7 @@ const typeColors: { [key: string]: string } = {
   ensemble: "bg-green-100 text-green-800",
   gradient_boosting: "bg-purple-100 text-purple-800",
   instance_based: "bg-orange-100 text-orange-800",
+  meta_learning: "bg-red-100 text-red-800",
 }
 
 export default function ModelsPage() {
@@ -105,7 +108,7 @@ export default function ModelsPage() {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold">{Object.keys(modelInfo.models).length}</div>
+              <div className="text-2xl font-bold">5</div>
               <div className="text-sm text-muted-foreground">Mô hình AI</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
@@ -113,8 +116,8 @@ export default function ModelsPage() {
               <div className="text-sm text-muted-foreground">Loại mùi</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold">100%</div>
-              <div className="text-sm text-muted-foreground">Độ chính xác</div>
+              <div className="text-2xl font-bold">97.61%</div>
+              <div className="text-sm text-muted-foreground">Độ chính xác Meta Model</div>
             </div>
           </div>
         </CardContent>
@@ -180,23 +183,23 @@ export default function ModelsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="p-4 bg-muted rounded-lg">
-              <div className="font-medium mb-2">Ensemble Method</div>
+              <div className="font-medium mb-2">Meta Learning</div>
               <Badge variant="secondary" className="mb-2">
-                {modelInfo.ensemble_method.replace("_", " ").toUpperCase()}
+                LINEAR REGRESSION
               </Badge>
               <p className="text-sm text-muted-foreground">
-                Hệ thống sử dụng phương pháp bỏ phiếu đa số để kết hợp kết quả từ 4 mô hình AI, đảm bảo độ chính xác và
-                tin cậy cao nhất.
+                Hệ thống sử dụng Meta Model để kết hợp kết quả từ 4 mô hình AI cơ sở,
+                đạt được độ chính xác cao nhất 97.61% trên tập dữ liệu test.
               </p>
             </div>
 
             <div className="space-y-2">
               <h4 className="font-medium">Quy trình dự đoán:</h4>
               <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                <li>Dữ liệu cảm biến được chuẩn hóa</li>
-                <li>4 mô hình AI thực hiện dự đoán độc lập</li>
-                <li>Kết quả được kết hợp bằng phương pháp bỏ phiếu</li>
-                <li>Trả về kết quả cuối cùng với độ tin cậy</li>
+                <li>Dữ liệu 4 cảm biến được chuẩn hóa</li>
+                <li>4 mô hình cơ sở (ANN, RF, XGBoost, KNN) thực hiện dự đoán</li>
+                <li>Meta Model sử dụng Linear Regression để kết hợp kết quả</li>
+                <li>Trả về kết quả cuối cùng với độ tin cậy cao</li>
               </ol>
             </div>
           </CardContent>
@@ -241,11 +244,15 @@ export default function ModelsPage() {
                       {key === "ann" && "Học sâu, xử lý phi tuyến"}
                       {key === "random_forest" && "Ổn định, chống overfitting"}
                       {key === "xgboost" && "Tốc độ cao, hiệu quả"}
+                      {key === "knn" && "Đơn giản, hiệu quả"}
+                      {key === "meta" && "Kết hợp tối ưu, độ chính xác cao nhất"}
                     </td>
                     <td className="p-2 text-muted-foreground">
-                      {key === "ann" && "Cung cấp xác suất tin cậy"}
+                      {key === "ann" && "Neural Network với regularization"}
                       {key === "random_forest" && "Ensemble của decision trees"}
                       {key === "xgboost" && "Gradient boosting tối ưu"}
+                      {key === "knn" && "Dựa trên khoảng cách láng giềng"}
+                      {key === "meta" && "Linear Regression trên meta-features"}
                     </td>
                   </tr>
                 ))}
