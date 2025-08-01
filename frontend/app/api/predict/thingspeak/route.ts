@@ -3,7 +3,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:5000'
 
-    const response = await fetch(`${backendUrl}/predict/thingspeak`, {
+    const response = await fetch(`${backendUrl}/predict`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

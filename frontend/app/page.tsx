@@ -4,10 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { motion, AnimatePresence } from "framer-motion"
 import { useState } from "react"
-import PredictionPage from "@/components/prediction-page"
 import ThingSpeakPage from "@/components/thingspeak-page"
-import SensorsPage from "@/components/sensors-page"
-import ModelsPage from "@/components/models-page"
 
 // Animation variants for tab content
 const tabVariants = {
@@ -59,7 +56,7 @@ export default function HomePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger 
               value="home"
               className="transition-all duration-200 hover:scale-105"
@@ -67,28 +64,10 @@ export default function HomePage() {
               Trang chủ
             </TabsTrigger>
             <TabsTrigger 
-              value="prediction"
-              className="transition-all duration-200 hover:scale-105"
-            >
-              Dự đoán
-            </TabsTrigger>
-            <TabsTrigger 
               value="thingspeak"
               className="transition-all duration-200 hover:scale-105"
             >
               ThingSpeak
-            </TabsTrigger>
-            <TabsTrigger 
-              value="sensors"
-              className="transition-all duration-200 hover:scale-105"
-            >
-              Cảm biến
-            </TabsTrigger>
-            <TabsTrigger 
-              value="models"
-              className="transition-all duration-200 hover:scale-105"
-            >
-              Mô hình
             </TabsTrigger>
           </TabsList>
         </motion.div>
@@ -148,10 +127,10 @@ export default function HomePage() {
                       <CardDescription>E-Nose - Electronic Nose System</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      <p className="text-sm">
-                        Hệ thống mũi điện tử sử dụng 4 cảm biến để phát hiện và phân loại mùi thịt. Dữ liệu từ các cảm biến được xử
-                        lý bởi 5 mô hình AI (4 mô hình cơ sở + 1 meta model) để đưa ra dự đoán chính xác về chất lượng thịt.
-                      </p>
+                                              <p className="text-sm">
+                          Hệ thống mũi điện tử sử dụng 4 cảm biến để phát hiện và phân loại mùi thịt. Dữ liệu từ ThingSpeak được xử
+                          lý bởi 5 mô hình AI (4 mô hình cơ sở + 1 meta model) để đưa ra dự đoán chính xác về chất lượng thịt.
+                        </p>
                       <div className="space-y-1">
                         <p className="text-sm">
                           <strong>Cảm biến khí:</strong> MQ136, MQ137
@@ -174,9 +153,9 @@ export default function HomePage() {
                     <CardContent className="space-y-2">
                       <div className="space-y-2">
                         {[
-                          'Chuyển đến tab "Dự đoán"',
-                          'Nhập dữ liệu 4 cảm biến (MQ136, MQ137, TEMP, HUMI)',
-                          'Nhấn "Dự đoán" để xem kết quả',
+                          'Chuyển đến tab "ThingSpeak"',
+                          'Nhấn "Lấy dữ liệu và dự đoán" để lấy dữ liệu từ ThingSpeak',
+                          'Hệ thống sẽ tự động tính trung bình dữ liệu cảm biến',
                           'Xem kết quả từ 5 mô hình AI và kết quả cuối cùng từ Meta Model'
                         ].map((step, index) => (
                           <motion.div
@@ -200,21 +179,6 @@ export default function HomePage() {
             )}
           </TabsContent>
 
-          <TabsContent value="prediction">
-            {activeTab === "prediction" && (
-              <motion.div
-                key="prediction"
-                variants={tabVariants}
-                initial="initial"
-                animate="in"
-                exit="out"
-                transition={tabTransition}
-              >
-                <PredictionPage />
-              </motion.div>
-            )}
-          </TabsContent>
-
           <TabsContent value="thingspeak">
             {activeTab === "thingspeak" && (
               <motion.div
@@ -226,36 +190,6 @@ export default function HomePage() {
                 transition={tabTransition}
               >
                 <ThingSpeakPage />
-              </motion.div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="sensors">
-            {activeTab === "sensors" && (
-              <motion.div
-                key="sensors"
-                variants={tabVariants}
-                initial="initial"
-                animate="in"
-                exit="out"
-                transition={tabTransition}
-              >
-                <SensorsPage />
-              </motion.div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="models">
-            {activeTab === "models" && (
-              <motion.div
-                key="models"
-                variants={tabVariants}
-                initial="initial"
-                animate="in"
-                exit="out"
-                transition={tabTransition}
-              >
-                <ModelsPage />
               </motion.div>
             )}
           </TabsContent>

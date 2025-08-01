@@ -6,6 +6,46 @@ import sys
 from config import config
 
 
+def create_security_mapping():
+    """
+    Create mapping between real names and security names for API responses
+    """
+    sensor_mapping = {
+        'MQ136': 'sensor_1',
+        'MQ137': 'sensor_2', 
+        'TEMP': 'sensor_3',
+        'HUMI': 'sensor_4'
+    }
+    
+    model_mapping = {
+        'ann': 'base_1',
+        'random_forest': 'base_2',
+        'xgboost': 'base_3',
+        'knn': 'base_4',
+        'meta': 'meta'
+    }
+    
+    return sensor_mapping, model_mapping
+
+
+def mask_sensor_names(sensor_list):
+    """Convert real sensor names to security names"""
+    sensor_mapping, _ = create_security_mapping()
+    return [sensor_mapping.get(sensor, sensor) for sensor in sensor_list]
+
+
+def mask_model_predictions(predictions):
+    """Convert real model names to security names in predictions"""
+    _, model_mapping = create_security_mapping()
+    masked_predictions = {}
+    
+    for model_name, prediction_data in predictions.items():
+        masked_name = model_mapping.get(model_name, model_name)
+        masked_predictions[masked_name] = prediction_data
+    
+    return masked_predictions
+
+
 def map_label_to_meat_type(label):
     """
     Map numeric label to meat type name
@@ -103,15 +143,21 @@ def predict_with_models(input_data):
     meta_label  = str(meta_model.classes_[meta_index])
     meta_conf   = float(meta_prob[0, meta_index])
 
+    # Create original predictions
+    original_predictions = {
+        'ann':   {'class_label': map_label_to_meat_type(ann_label),  'probability': round(ann_conf, 4)},
+        'random_forest': {'class_label': map_label_to_meat_type(rf_label)},
+        'xgboost':      {'class_label': map_label_to_meat_type(xgb_label)},
+        'knn':          {'class_label': map_label_to_meat_type(knn_label)},
+        'meta':         {'class_label': map_label_to_meat_type(meta_label), 'probability': round(meta_conf, 4)}
+    }
+    
+    # Mask model names for security
+    masked_predictions = mask_model_predictions(original_predictions)
+    
     return {
         'input_data': input_data,
-        'predictions': {
-            'ann':   {'class_label': map_label_to_meat_type(ann_label),  'probability': round(ann_conf, 4)},
-            'random_forest': {'class_label': map_label_to_meat_type(rf_label)},
-            'xgboost':      {'class_label': map_label_to_meat_type(xgb_label)},
-            'knn':          {'class_label': map_label_to_meat_type(knn_label)},
-            'meta':         {'class_label': map_label_to_meat_type(meta_label), 'probability': round(meta_conf, 4)}
-        }
+        'predictions': masked_predictions
     }
 
 if __name__ == "__main__":
@@ -127,9 +173,10 @@ if __name__ == "__main__":
 
     result = predict_with_models(sensor_readings)
     print("\nInput data:", result['input_data'])
-    print("\nPredictions:")
-    print(f"ANN: {result['predictions']['ann']['class_label']} (Prob: {result['predictions']['ann']['probability']:.4f})")
-    print(f"RF: {result['predictions']['random_forest']['class_label']}")
-    print(f"XGB: {result['predictions']['xgboost']['class_label']}")
-    print(f"KNN: {result['predictions']['knn']['class_label']}")
-    print(f"META: {result['predictions']['meta']['class_label']} (Prob: {result['predictions']['meta']['probability']:.4f})")
+    print("\nPredictions (with security masking):")
+    predictions = result['predictions']
+    for model_name, pred_data in predictions.items():
+        if 'probability' in pred_data:
+            print(f"{model_name.upper()}: {pred_data['class_label']} (Prob: {pred_data['probability']:.4f})")
+        else:
+            print(f"{model_name.upper()}: {pred_data['class_label']}")

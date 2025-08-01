@@ -1,12 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Cloud, RefreshCw, Brain, TreePine, Zap, Network, Target, ChevronDown } from "lucide-react"
+import { Loader2, Cloud, RefreshCw, Brain, TreePine, Zap, Network, Target, ChevronDown, Play, Pause, Timer } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface CollapsibleProps {
@@ -60,13 +58,13 @@ interface PredictionResult {
 }
 
 interface ThingSpeakPrediction {
-  input_data: number[]
+  input_data?: number[]
   predictions: {
-    ann: PredictionResult
-    random_forest: PredictionResult
-    xgboost: PredictionResult
-    knn: PredictionResult
-    meta?: PredictionResult
+    base_1: PredictionResult
+    base_2: PredictionResult
+    base_3: PredictionResult
+    base_4: PredictionResult
+    meta: PredictionResult
   }
   thingspeak_data?: ThingSpeakData  // Optional for backward compatibility
   metadata: {
@@ -76,6 +74,9 @@ interface ThingSpeakPrediction {
       records_fetched: number
       latest_entry_time: string
       api_key: string
+    }
+    model_versions?: {
+      [key: string]: string
     }
   }
 }
@@ -93,11 +94,26 @@ export default function ThingSpeakPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<ThingSpeakPrediction | null>(null)
   const [error, setError] = useState<string | null>(null)
+  
+  // Auto-refresh states
+  const [isAutoRefresh, setIsAutoRefresh] = useState(false)
+  const [refreshInterval, setRefreshInterval] = useState(10) // seconds
+  const [countdown, setCountdown] = useState(0)
+  const abortControllerRef = useRef<AbortController | null>(null)
+  const isRunningRef = useRef(false)
 
-  const handlePredict = async () => {
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [])
+
+  const handlePredict = useCallback(async () => {
     setIsLoading(true)
     setError(null)
-    setResult(null)
 
     try {
       const response = await fetch("/api/predict/thingspeak", {
@@ -119,37 +135,95 @@ export default function ThingSpeakPage() {
       setResult(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Có lỗi xảy ra khi kết nối ThingSpeak")
+      // Stop auto-refresh on error
+      setIsAutoRefresh(false)
     } finally {
       setIsLoading(false)
     }
+  }, [apiKey])
+
+  // Sleep function for delay
+  const sleep = (seconds: number): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(resolve, seconds * 1000)
+      
+      // Handle abort
+      if (abortControllerRef.current) {
+        abortControllerRef.current.signal.addEventListener('abort', () => {
+          clearTimeout(timeoutId)
+          reject(new Error('Aborted'))
+        })
+      }
+    })
   }
 
-  // Helper to get ThingSpeak info from either structure
-  const getThingSpeakInfo = () => {
-    if (!result) return null
+  // Auto-refresh loop with while true pattern
+  const startAutoRefreshLoop = useCallback(async () => {
+    if (isRunningRef.current) return // Already running
     
-    // New structure: metadata.thingspeak
-    if (result.metadata?.thingspeak) {
-      return {
-        api_key: result.metadata.thingspeak.api_key,
-        records_fetched: result.metadata.thingspeak.records_fetched,
-        latest_entry_time: result.metadata.thingspeak.latest_entry_time,
+    isRunningRef.current = true
+    abortControllerRef.current = new AbortController()
+    
+    try {
+      while (isRunningRef.current && !abortControllerRef.current?.signal.aborted) {
+        // Fetch data
+        await handlePredict()
+        
+        if (!isRunningRef.current) break
+        
+        // Countdown timer
+        for (let i = refreshInterval; i > 0 && isRunningRef.current; i--) {
+          setCountdown(i)
+          await sleep(1)
+          
+          if (abortControllerRef.current?.signal.aborted) break
+        }
+        
+        setCountdown(0)
       }
-    }
-    
-    // Old structure: thingspeak_data
-    if (result.thingspeak_data) {
-      return {
-        channel_id: result.thingspeak_data.channel_id,
-        name: result.thingspeak_data.name,
-        description: result.thingspeak_data.description,
-        updated_at: result.thingspeak_data.updated_at,
-        last_entry_id: result.thingspeak_data.last_entry_id,
+    } catch (err) {
+      if (err instanceof Error && err.message !== 'Aborted') {
+        console.error('Auto-refresh error:', err)
+        setError("Có lỗi xảy ra trong quá trình auto-refresh")
+        setIsAutoRefresh(false)
       }
+    } finally {
+      isRunningRef.current = false
+      setCountdown(0)
     }
-    
-    return null
+  }, [handlePredict, refreshInterval])
+
+  const stopAutoRefresh = useCallback(() => {
+    isRunningRef.current = false
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    setCountdown(0)
+  }, [])
+
+  const toggleAutoRefresh = () => {
+    if (isAutoRefresh) {
+      stopAutoRefresh()
+      setIsAutoRefresh(false)
+    } else {
+      setIsAutoRefresh(true)
+    }
   }
+
+  const handleRefreshIntervalChange = (seconds: number) => {
+    setRefreshInterval(seconds)
+  }
+
+  // Auto-refresh effect
+  useEffect(() => {
+    if (isAutoRefresh) {
+      startAutoRefreshLoop()
+    } else {
+      stopAutoRefresh()
+    }
+  }, [isAutoRefresh, startAutoRefreshLoop, stopAutoRefresh])
+
+
 
   return (
     <div className="space-y-6">
@@ -162,19 +236,58 @@ export default function ThingSpeakPage() {
           <CardDescription>Lấy dữ liệu cảm biến từ ThingSpeak, tính trung bình và thực hiện dự đoán</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="api-key">ThingSpeak API Key</Label>
-            <Input
-              id="api-key"
-              type="text"
-              placeholder="Nhập API Key của ThingSpeak"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">API Key để truy cập dữ liệu từ ThingSpeak channel</p>
+          {/* Auto-refresh controls */}
+          <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Timer className="h-4 w-4" />
+                <span className="font-medium">Auto-refresh</span>
+              </div>
+              <Button
+                variant={isAutoRefresh ? "default" : "outline"}
+                size="sm"
+                onClick={toggleAutoRefresh}
+              >
+                {isAutoRefresh ? (
+                  <>
+                    <Pause className="mr-2 h-4 w-4" />
+                    Dừng
+                  </>
+                ) : (
+                  <>
+                    <Play className="mr-2 h-4 w-4" />
+                    Bắt đầu
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            <div className="space-y-2">
+              <span className="text-sm font-medium">Khoảng thời gian refresh:</span>
+              <div className="flex space-x-2">
+                {[5, 10, 30, 60].map(seconds => (
+                  <Button
+                    key={seconds}
+                    variant={refreshInterval === seconds ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleRefreshIntervalChange(seconds)}
+                    disabled={isAutoRefresh}
+                  >
+                    {seconds}s
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {isAutoRefresh && countdown > 0 && (
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                <span>Refresh tiếp theo trong: {countdown}s</span>
+              </div>
+            )}
           </div>
 
-          <Button onClick={handlePredict} disabled={isLoading || !apiKey.trim()} className="w-full">
+          <Button onClick={handlePredict} disabled={isLoading} className="w-full">
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -198,70 +311,13 @@ export default function ThingSpeakPage() {
 
       {result && (
         <>
-          {/* ThingSpeak Info Card - Only show if we have data */}
-          {getThingSpeakInfo() && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Thông tin ThingSpeak</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="grid gap-2 md:grid-cols-2">
-                  {getThingSpeakInfo()?.channel_id && (
-                    <div>
-                      <p className="text-sm font-medium">Channel ID:</p>
-                      <p className="text-sm text-muted-foreground">{getThingSpeakInfo()?.channel_id}</p>
-                    </div>
-                  )}
-                  {getThingSpeakInfo()?.name && (
-                    <div>
-                      <p className="text-sm font-medium">Tên Channel:</p>
-                      <p className="text-sm text-muted-foreground">{getThingSpeakInfo()?.name}</p>
-                    </div>
-                  )}
-                  {getThingSpeakInfo()?.api_key && (
-                    <div>
-                      <p className="text-sm font-medium">API Key:</p>
-                      <p className="text-sm text-muted-foreground font-mono">{getThingSpeakInfo()?.api_key}</p>
-                    </div>
-                  )}
-                  {getThingSpeakInfo()?.records_fetched && (
-                    <div>
-                      <p className="text-sm font-medium">Records lấy được:</p>
-                      <p className="text-sm text-muted-foreground">{getThingSpeakInfo()?.records_fetched}</p>
-                    </div>
-                  )}
-                  {(getThingSpeakInfo()?.updated_at || getThingSpeakInfo()?.latest_entry_time) && (
-                    <div>
-                      <p className="text-sm font-medium">Cập nhật lần cuối:</p>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(getThingSpeakInfo()?.updated_at || getThingSpeakInfo()?.latest_entry_time || '').toLocaleString("vi-VN")}
-                      </p>
-                    </div>
-                  )}
-                  {getThingSpeakInfo()?.last_entry_id && (
-                    <div>
-                      <p className="text-sm font-medium">Entry ID:</p>
-                      <p className="text-sm text-muted-foreground">{getThingSpeakInfo()?.last_entry_id}</p>
-                    </div>
-                  )}
-                </div>
-                {getThingSpeakInfo()?.description && (
-                  <div>
-                    <p className="text-sm font-medium">Mô tả:</p>
-                    <p className="text-sm text-muted-foreground">{getThingSpeakInfo()?.description}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
           {/* Meta Model Result - Main Result */}
           {result.predictions.meta && (
             <Card className="border-2 border-primary">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Target className="h-5 w-5 mr-2" />
-                  Kết quả dự đoán cuối cùng (Meta Model)
+                  Kết quả dự đoán cuối cùng (Mô hình tổng hợp)
                 </CardTitle>
                 <CardDescription>
                   Kết quả được tối ưu hóa từ 4 mô hình AI cơ sở với dữ liệu ThingSpeak
@@ -276,7 +332,7 @@ export default function ThingSpeakPage() {
                     Độ tin cậy: {((result.predictions.meta?.probability || 0) * 100).toFixed(2)}%
                   </div>
                   <Badge variant="default" className="text-sm px-4 py-2">
-                    Meta Model 
+                    Mô hình Base-5
                   </Badge>
                 </div>
               </CardContent>
@@ -289,12 +345,12 @@ export default function ThingSpeakPage() {
               <Card>
                 <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                   <Brain className="h-4 w-4 mr-2" />
-                  <CardTitle className="text-sm font-medium">Neural Network (ANN)</CardTitle>
+                  <CardTitle className="text-sm font-medium">Mô hình Base-1</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-xl font-bold">{odorLabels[result.predictions.ann.class_label] || result.predictions.ann.class_label}</div>
+                  <div className="text-xl font-bold">{odorLabels[result.predictions.base_1.class_label] || result.predictions.base_1.class_label}</div>
                   <div className="text-sm text-muted-foreground mt-1">
-                    Độ tin cậy: {((result.predictions.ann.probability || 0) * 100).toFixed(2)}%
+                    Độ tin cậy: {((result.predictions.base_1.probability || 0) * 100).toFixed(2)}%
                   </div>
                 </CardContent>
               </Card>
@@ -302,30 +358,30 @@ export default function ThingSpeakPage() {
               <Card>
                 <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                   <TreePine className="h-4 w-4 mr-2" />
-                  <CardTitle className="text-sm font-medium">Random Forest</CardTitle>
+                  <CardTitle className="text-sm font-medium">Mô hình Base-2</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-xl font-bold">{odorLabels[result.predictions.random_forest.class_label] || result.predictions.random_forest.class_label}</div>
+                  <div className="text-xl font-bold">{odorLabels[result.predictions.base_2.class_label] || result.predictions.base_2.class_label}</div>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                   <Zap className="h-4 w-4 mr-2" />
-                  <CardTitle className="text-sm font-medium">XGBoost</CardTitle>
+                  <CardTitle className="text-sm font-medium">Mô hình Base-3</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-xl font-bold">{odorLabels[result.predictions.xgboost.class_label] || result.predictions.xgboost.class_label}</div>
+                  <div className="text-xl font-bold">{odorLabels[result.predictions.base_3.class_label] || result.predictions.base_3.class_label}</div>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                   <Network className="h-4 w-4 mr-2" />
-                  <CardTitle className="text-sm font-medium">K-Nearest Neighbors</CardTitle>
+                  <CardTitle className="text-sm font-medium">Mô hình Base-4</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-xl font-bold">{odorLabels[result.predictions.knn.class_label] || result.predictions.knn.class_label}</div>
+                  <div className="text-xl font-bold">{odorLabels[result.predictions.base_4.class_label] || result.predictions.base_4.class_label}</div>
                 </CardContent>
               </Card>
             </div>
@@ -337,18 +393,42 @@ export default function ThingSpeakPage() {
               <CardTitle>Dữ liệu cảm biến trung bình từ ThingSpeak</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {result.metadata.sensor_names.map((sensor, index) => (
-                  <div key={sensor} className="text-center p-3 bg-muted rounded">
-                    <div className="text-xs text-muted-foreground">{sensor}</div>
-                    <div className="font-mono text-lg font-bold">{result.input_data[index].toFixed(2)}</div>
+              {result.input_data && result.input_data.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {result.metadata.sensor_names.map((sensor, index) => (
+                      <div key={sensor} className="text-center p-3 bg-muted rounded">
+                        <div className="text-xs text-muted-foreground">{sensor}</div>
+                        <div className="font-mono text-lg font-bold">
+                          {result.input_data?.[index] ? result.input_data[index].toFixed(2) : 'N/A'}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground mt-4">
-                Dữ liệu trung bình được tính từ {result.metadata?.thingspeak?.records_fetched || 'nhiều'} bản ghi. <br />
-                Dữ liệu được lấy lúc: {new Date(result.metadata.timestamp).toLocaleString("vi-VN")}
-              </p>
+                  <p className="text-xs text-muted-foreground mt-4">
+                    Dữ liệu trung bình được tính từ {result.metadata?.thingspeak?.records_fetched || 'nhiều'} bản ghi. <br />
+                    Dữ liệu được lấy lúc: {new Date(result.metadata.timestamp).toLocaleString("vi-VN")}
+                  </p>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-sm text-muted-foreground mb-4">
+                    Dữ liệu cảm biến chi tiết không có sẵn trong response từ server.
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 opacity-50">
+                    {result.metadata.sensor_names.map((sensor) => (
+                      <div key={sensor} className="text-center p-3 bg-muted rounded">
+                        <div className="text-xs text-muted-foreground">{sensor}</div>
+                        <div className="font-mono text-lg font-bold">--</div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-4">
+                    Kết quả dự đoán vẫn được tính toán từ dữ liệu ThingSpeak. <br />
+                    Dự đoán được thực hiện lúc: {new Date(result.metadata.timestamp).toLocaleString("vi-VN")}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </>

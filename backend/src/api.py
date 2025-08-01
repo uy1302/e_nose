@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import numpy as np
 import logging
 import sys
 import os
@@ -9,9 +8,8 @@ from datetime import datetime
 # Add src directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from predict import predict_with_models
 from adapter import fetch_thingspeak_data, process_thingspeak_data
-from config import config
+from predict import predict_with_models, mask_sensor_names
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -32,77 +30,9 @@ def health_check():
         'version': '1.0.0'
     })
 
-# Predict endpoint with manual input
+# Predict endpoint with ThingSpeak data
 @app.route('/predict', methods=['POST'])
 def predict():
-    """
-    Predict smell category from sensor data
-    
-    Expected JSON payload:
-    {
-        "sensor_data": [MQ136, MQ137, TEMP, HUMI]
-    }
-    """
-    try:
-        data = request.get_json()
-        
-        if not data or 'sensor_data' not in data:
-            return jsonify({
-                'error': 'Missing sensor_data in request body',
-                'expected_format': {
-                    'sensor_data': [1652.0, 1587.0, 34.1, 99.2]
-                }
-            }), 400
-        
-        sensor_data = data['sensor_data']
-        
-        # Validate sensor data
-        if len(sensor_data) != 4:
-            return jsonify({
-                'error': 'sensor_data must contain exactly 4 values',
-                'received': len(sensor_data),
-                'expected': 4,
-                'sensor_names': ['MQ136', 'MQ137', 'TEMP', 'HUMI']
-            }), 400
-        
-        # Convert to float and validate
-        try:
-            sensor_values = [float(val) for val in sensor_data]
-        except (ValueError, TypeError) as e:
-            return jsonify({
-                'error': 'All sensor values must be numeric',
-                'details': str(e)
-            }), 400
-        
-        # Make prediction
-        result = predict_with_models(sensor_values)
-        
-        # Add metadata
-        result['metadata'] = {
-            'timestamp': datetime.now().isoformat(),
-            'sensor_names': ['MQ136', 'MQ137', 'TEMP', 'HUMI'],
-            'model_versions': {
-                'ann': 'v1.0',
-                'random_forest': 'v1.0', 
-                'xgboost': 'v1.0',
-                'knn': 'v1.0',
-                'meta': 'v1.0'
-            }
-        }
-        
-        logger.info(f"Prediction successful for input: {sensor_values[:3]}...")
-        return jsonify(result)
-        
-    except Exception as e:
-        logger.error(f"Prediction error: {str(e)}")
-        return jsonify({
-            'error': 'Internal server error during prediction',
-            'details': str(e)
-        }), 500
-
-# Predict endpoint with ThingSpeak data
-@app.route('/predict/thingspeak', methods=['POST'])
-def predict_thingspeak():
     """
     Predict smell category from ThingSpeak averaged data
     
@@ -145,20 +75,23 @@ def predict_thingspeak():
         # Make prediction
         result = predict_with_models(sensor_values)
         
-        # Add ThingSpeak metadata
+        # Add ThingSpeak metadata with masked sensor names
+        original_sensor_names = ['MQ136', 'MQ137', 'TEMP', 'HUMI']
+        masked_sensor_names = mask_sensor_names(original_sensor_names)
+        
         result['metadata'] = {
             'timestamp': datetime.now().isoformat(),
-            'sensor_names': ['MQ136', 'MQ137', 'TEMP', 'HUMI'],
+            'sensor_names': masked_sensor_names,
             'thingspeak': {
                 'records_fetched': len(thingspeak_data),
                 'latest_entry_time': thingspeak_data[-1].get('created_at'),
                 'api_key': api_key
             },
             'model_versions': {
-                'ann': 'v1.0',
-                'random_forest': 'v1.0',
-                'xgboost': 'v1.0',
-                'knn': 'v1.0',
+                'base_1': 'v1.0',
+                'base_2': 'v1.0',
+                'base_3': 'v1.0',
+                'base_4': 'v1.0',
                 'meta': 'v1.0'
             }
         }
@@ -173,120 +106,6 @@ def predict_thingspeak():
             'details': str(e)
         }), 500
 
-# Get sensor configuration
-@app.route('/sensors', methods=['GET'])
-def get_sensors():
-    """Get sensor configuration and information"""
-    return jsonify({
-        'sensor_features': ['MQ136', 'MQ137', 'TEMP', 'HUMI'],
-        'sensor_count': 4,
-        'sensor_types': {
-            'gas_sensors': ['MQ136', 'MQ137'],
-            'environmental_sensors': ['TEMP', 'HUMI']
-        },
-        'sensor_descriptions': {
-            'MQ136': 'Cảm biến khí đa năng',
-            'MQ137': 'Cảm biến khí ammonia',
-            'TEMP': 'Nhiệt độ (°C)',
-            'HUMI': 'Độ ẩm (%)'
-        }
-    })
-
-# Get model information
-@app.route('/models', methods=['GET'])
-def get_models():
-    """Get information about available models"""
-    return jsonify({
-        'models': {
-            'ann': {
-                'name': 'Artificial Neural Network',
-                'type': 'deep_learning',
-                'accuracy': '97.19%',
-                'description': 'Mạng neural nhân tạo với regularization'
-            },
-            'random_forest': {
-                'name': 'Random Forest',
-                'type': 'ensemble',
-                'accuracy': '97.39%',
-                'description': 'Ensemble của các decision trees'
-            },
-            'xgboost': {
-                'name': 'XGBoost',
-                'type': 'gradient_boosting',
-                'accuracy': '97.47%',
-                'description': 'Gradient boosting tối ưu hóa'
-            },
-            'knn': {
-                'name': 'K-Nearest Neighbors',
-                'type': 'instance_based',
-                'accuracy': '97.46%',
-                'description': 'Thuật toán dựa trên khoảng cách'
-            },
-            'meta': {
-                'name': 'Meta Model',
-                'type': 'meta_learning',
-                'accuracy': '97.61%',
-                'description': 'Linear Regression kết hợp các mô hình cơ sở'
-            }
-        },
-        'classes': [
-            'Thịt loại 1',
-            'Thịt loại 2',
-            'Thịt loại 3',
-            'Thịt loại 4',
-            'Thịt hỏng'
-        ],
-        'ensemble_method': 'meta_learning'
-    })
-
-# Get ThingSpeak data endpoint
-@app.route('/thingspeak/data', methods=['POST'])
-def get_thingspeak_data():
-    """
-    Fetch raw data from ThingSpeak
-    
-    Expected JSON payload:
-    {
-        "api_key": "P91SEPV5ZZG00Y4S",
-        "results": 10
-    }
-    """
-    try:
-        data = request.get_json()
-        
-        if not data or 'api_key' not in data:
-            return jsonify({
-                'error': 'Missing api_key in request body'
-            }), 400
-        
-        api_key = data['api_key']
-        results = data.get('results', 10)
-        
-        # Fetch data from ThingSpeak
-        thingspeak_data = fetch_thingspeak_data(api_key, results)
-        
-        if not thingspeak_data:
-            return jsonify({
-                'error': 'Failed to fetch data from ThingSpeak'
-            }), 503
-        
-        return jsonify({
-            'data': thingspeak_data,
-            'count': len(thingspeak_data),
-            'metadata': {
-                'api_key': api_key,
-                'results_requested': results,
-                'timestamp': datetime.now().isoformat()
-            }
-        })
-        
-    except Exception as e:
-        logger.error(f"ThingSpeak data fetch error: {str(e)}")
-        return jsonify({
-            'error': 'Internal server error during data fetch',
-            'details': str(e)
-        }), 500
-
 # Error handlers
 @app.errorhandler(404)
 def not_found(error):
@@ -294,11 +113,7 @@ def not_found(error):
         'error': 'Endpoint not found',
         'available_endpoints': {
             'GET /health': 'Health check',
-            'POST /predict': 'Predict with manual sensor data',
-            'POST /predict/thingspeak': 'Predict with ThingSpeak data',
-            'GET /sensors': 'Get sensor information',
-            'GET /models': 'Get model information',
-            'POST /thingspeak/data': 'Fetch ThingSpeak data'
+            'POST /predict': 'Predict with ThingSpeak data'
         }
     }), 404
 
