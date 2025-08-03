@@ -3,7 +3,14 @@ import pickle
 import joblib
 import xgboost as xgb
 import sys
+import os
 from config import config
+
+# Get absolute path to models directory
+MODELS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'models')
+print(f"MODELS_DIR: {MODELS_DIR}")
+print(f"Scaler path: {os.path.join(MODELS_DIR, 'scaler.pkl')}")
+print(f"Scaler exists: {os.path.exists(os.path.join(MODELS_DIR, 'scaler.pkl'))}")
 
 
 def create_security_mapping():
@@ -104,16 +111,23 @@ def predict_with_models(input_data):
     input_array = np.array(input_data).reshape(1, -1)
 
     # Load scaler only
-    scaler = joblib.load('../models/scaler.pkl')
+    try:
+        scaler_path = os.path.join(MODELS_DIR, 'scaler.pkl')
+        print(f"Loading scaler from: {scaler_path}")
+        scaler = joblib.load(scaler_path)
+        print("Scaler loaded successfully")
+    except Exception as e:
+        print(f"Error loading scaler: {e}")
+        raise
 
     # Scale input
     input_scaled = scaler.transform(input_array)
 
     # Load base models
-    rf_model  = joblib.load('../models/random_forest_model.pkl')
-    xgb_model = joblib.load('../models/xgboost_model.pkl')
-    knn_model = joblib.load('../models/knn_model.pkl')
-    ann_model = joblib.load('../models/ann_model.pkl')  # MLPClassifier
+    rf_model  = joblib.load(os.path.join(MODELS_DIR, 'random_forest_model.pkl'))
+    xgb_model = joblib.load(os.path.join(MODELS_DIR, 'xgboost_model.pkl'))
+    knn_model = joblib.load(os.path.join(MODELS_DIR, 'knn_model.pkl'))
+    ann_model = joblib.load(os.path.join(MODELS_DIR, 'ann_model.pkl'))  # MLPClassifier
 
     base_models = {'rf': rf_model, 'xgb': xgb_model, 'knn': knn_model, 'ann': ann_model}
 
@@ -137,7 +151,7 @@ def predict_with_models(input_data):
 
     # Meta-model prediction
     meta_X      = get_meta_features(base_models, input_scaled)
-    meta_model  = joblib.load('../models/meta_model.pkl')
+    meta_model  = joblib.load(os.path.join(MODELS_DIR, 'meta_model.pkl'))
     meta_prob   = meta_model.predict_proba(meta_X)
     meta_index  = np.argmax(meta_prob, axis=1)[0]
     meta_label  = str(meta_model.classes_[meta_index])

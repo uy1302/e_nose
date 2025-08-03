@@ -39,15 +39,15 @@ export default function HomePage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 flex flex-col items-center">
       <motion.div 
         className="mb-8"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-3xl font-bold tracking-tight">E-Nose Dashboard</h1>
-        <p className="text-muted-foreground">Hệ thống dự đoán mùi từ dữ liệu cảm biến</p>
+        <h1 className="text-3xl font-bold tracking-tight">Sensetify</h1>
+        <p className="text-muted-foreground">Sensetify - Sản phẩm mũi điện tử với công nghệ AI giúp phân tích nhanh chất lượng thực phẩm, môi trường, sinh học.</p>
       </motion.div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -91,7 +91,7 @@ export default function HomePage() {
                   transition={{ duration: 0.6, delay: 0.3 }}
                 >
                   {[
-                    { title: "Tổng số cảm biến", value: "4", desc: "2 cảm biến khí + 2 cảm biến môi trường" },
+                    { title: "Tổng số cảm biến", value: "4", desc: "Cảm biến khí + Nhiệt độ + Độ ẩm" },
                     { title: "Mô hình AI", value: "5", desc: "ANN, RF, XGBoost, KNN + Meta Model" },
                     { title: "Loại mùi", value: "5", desc: "Thịt loại 1-4 + Thịt hỏng" },
                     { title: "Độ chính xác", value: "97.61%", desc: "Meta Model trên tập test" }
@@ -124,7 +124,7 @@ export default function HomePage() {
                   <Card className="card-hover-glow">
                     <CardHeader>
                       <CardTitle>Giới thiệu hệ thống</CardTitle>
-                      <CardDescription>E-Nose - Electronic Nose System</CardDescription>
+                      <CardDescription>Sensetify - Electronic Nose System</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2">
                                               <p className="text-sm">
@@ -133,10 +133,13 @@ export default function HomePage() {
                         </p>
                       <div className="space-y-1">
                         <p className="text-sm">
-                          <strong>Cảm biến khí:</strong> MQ136, MQ137
+                          <strong>Cảm biến khí:</strong> Phát hiện các chất bay hơi
                         </p>
                         <p className="text-sm">
-                          <strong>Cảm biến môi trường:</strong> Nhiệt độ (TEMP), Độ ẩm (HUMI)
+                          <strong>Cảm biến nhiệt độ:</strong> Đo nhiệt độ môi trường
+                        </p>
+                        <p className="text-sm">
+                          <strong>Cảm biến độ ẩm:</strong> Đo độ ẩm môi trường
                         </p>
                         <p className="text-sm">
                           <strong>Loại thịt phân loại:</strong> Thịt loại 1, 2, 3, 4 và Thịt hỏng
@@ -154,8 +157,8 @@ export default function HomePage() {
                       <div className="space-y-2">
                         {[
                           'Chuyển đến tab "ThingSpeak"',
-                          'Nhấn "Lấy dữ liệu và dự đoán" để lấy dữ liệu từ ThingSpeak',
-                          'Hệ thống sẽ tự động tính trung bình dữ liệu cảm biến',
+                          'Nhấn "Bắt đầu thu thập dữ liệu" để tự động lấy dữ liệu từ ThingSpeak',
+                          'Hệ thống sẽ tự động thu thập và tính trung bình dữ liệu cảm biến mỗi 30 giây',
                           'Xem kết quả từ 5 mô hình AI và kết quả cuối cùng từ Meta Model'
                         ].map((step, index) => (
                           <motion.div

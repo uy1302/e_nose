@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "E-Nose",
-  description: "E-Nose project, a machine learning model for predicting odors from sensor data. Made for SCIC 2025",
+  title: "Sensetify",
+  description: "Sensetify - Sản phẩm mũi điện tử với công nghệ AI giúp phân tích nhanh chất lượng thực phẩm, môi trường, sinh học.",
   icons: {
     icon: "/logo.png",
     shortcut: "/logo.png",

@@ -55,48 +55,47 @@ def save_data_to_csv(data, filename="output.csv"):
 
 def process_thingspeak_data(data):
     """
-    Process ThingSpeak data to extract average sensor values
+    Process ThingSpeak data to extract array of sensor values
     
     Args:
         data (list): List of ThingSpeak feed data
     
     Returns:
-        list: List of average sensor values [MQ136, MQ137, TEMP, HUMI] or None if failed
+        list: List of sensor data arrays [[MQ136, MQ137, TEMP, HUMI], ...] or None if failed
     """
     if not data:
         return None
     
-    # Calculate average values from all entries
+    # Extract all valid sensor readings as array
     try:
-        field_sums = [0.0] * 4  # 4 fields: MQ136, MQ137, TEMP, HUMI
-        field_counts = [0] * 4
-
+        sensor_arrays = []
+        
         # Map ThingSpeak fields to our sensors: MQ136, MQ137, TEMP, HUMI
         field_mapping = ["field1", "field2", "field3", "field4"]
 
-        # Sum all valid field values
+        # Process each entry to get sensor values
         for entry in data:
-            for i, field_name in enumerate(field_mapping):
+            sensor_values = []
+            has_valid_data = False
+            
+            for field_name in field_mapping:
                 field_value = entry.get(field_name)
                 if field_value is not None and field_value != "":
                     try:
                         value = float(field_value)
-                        field_sums[i] += value
-                        field_counts[i] += 1
+                        sensor_values.append(round(value, 2))
+                        has_valid_data = True
                     except (ValueError, TypeError):
-                        continue
+                        sensor_values.append(0.0)  # Default to 0 for invalid data
+                else:
+                    sensor_values.append(0.0)  # Default to 0 for missing data
+            
+            # Only add if we have at least some valid data
+            if has_valid_data:
+                sensor_arrays.append(sensor_values)
         
-        # Calculate averages and round to 2 decimal places
-        sensor_values = []
-        for i in range(4):
-            if field_counts[i] > 0:
-                average_value = field_sums[i] / field_counts[i]
-                sensor_values.append(round(average_value, 2))
-            else:
-                sensor_values.append(0.0)  # Default to 0 if no valid data
-        
-        print(f"Calculated averages from {len(data)} entries: {sensor_values}")
-        return sensor_values
+        print(f"Processed {len(sensor_arrays)} valid entries from {len(data)} total entries")
+        return sensor_arrays
         
     except Exception as e:
         print(f"Error processing sensor values: {str(e)}")

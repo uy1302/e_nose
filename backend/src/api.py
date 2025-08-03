@@ -63,17 +63,31 @@ def predict():
                 'api_key': api_key
             }), 503
         
-        # Process data to get sensor values
-        sensor_values = process_thingspeak_data(thingspeak_data)
+        # Process data to get sensor arrays
+        sensor_arrays = process_thingspeak_data(thingspeak_data)
         
-        if not sensor_values:
+        if not sensor_arrays:
             return jsonify({
                 'error': 'Failed to process ThingSpeak data',
                 'raw_data_count': len(thingspeak_data)
             }), 422
         
-        # Make prediction
+        # Calculate average for prediction (backward compatibility)
+        sensor_values = []
+        for i in range(4):  # 4 sensors: MQ136, MQ137, TEMP, HUMI
+            values = [arr[i] for arr in sensor_arrays if len(arr) > i]
+            if values:
+                avg_value = round(sum(values) / len(values), 2)
+                sensor_values.append(avg_value)
+            else:
+                sensor_values.append(0.0)
+        
+        # Make prediction using average values
         result = predict_with_models(sensor_values)
+        
+        # Add input data and raw sensor arrays to result
+        result['input_data'] = sensor_values
+        result['sensor_arrays'] = sensor_arrays
         
         # Add ThingSpeak metadata with masked sensor names
         original_sensor_names = ['MQ136', 'MQ137', 'TEMP', 'HUMI']
