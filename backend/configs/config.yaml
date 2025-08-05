@@ -1,0 +1,61 @@
+# E-Nose Project Configuration
+
+# Paths
+paths:
+  data:
+    raw: "data/raw"
+    processed: "data/processed"
+    formatted_data: "data/processed/formatted_data"
+    decoder_scaler: "data/processed/decoder_scaler"
+  models: "models"
+  output: "data/processed"
+  docs: "docs"
+
+# Model files
+models:
+  ann: "models/ann_model.pkl"
+  random_forest: "models/random_forest_model.pkl"
+  xgboost: "models/xgboost_model.pkl"
+  knn: "models/knn_model.pkl"
+  meta_model: "models/meta_model.pkl"
+
+# Preprocessing
+preprocessing:
+  scaler: "models/scaler.pkl"
+
+# Training parameters
+training:
+  ann:
+    epochs: 100
+    batch_size: 32
+    validation_split: 0.2
+    patience: 20
+    learning_rate: 0.001
+  
+  random_forest:
+    n_estimators: 100
+    max_depth: 10
+    random_state: 42
+  
+  xgboost:
+    n_estimators: 100
+    max_depth: 6
+    learning_rate: 0.1
+
+# Sensor configuration
+sensors:
+  features: ["MQ136", "MQ137", "TEMP", "HUMI"]
+
+# Classes (smell categories)
+classes:
+  - "Thịt loại 1"
+  - "Thịt loại 2"
+  - "Thịt loại 3"
+  - "Thịt loại 4"
+  - "Thịt hỏng"
+
+# Visualization
+plots:
+  save_path: "docs"
+  dpi: 300
+  figsize: [12, 8] 
